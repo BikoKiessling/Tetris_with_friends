@@ -1,6 +1,6 @@
 var socket, name;
 var ip = "http://192.168.43.87:8080/";
-var state = "start";
+var status = "start";
 var ready = false;
 
 window.addEventListener("DOMContentLoaded", e => {
@@ -17,11 +17,11 @@ window.addEventListener("DOMContentLoaded", e => {
     var content = "";
     for(var i = 0; i < matchlist.length; i++){
       var match = matchlist[i];
-      content += "<li onclick='joinMatch("+match[id].id+")'>";
-      content += "<span class='name'>"+match[id].name+"</span>";
-      content += "<span class='mode'>"+match[id].mode+"</span>";
-      content += "<span class='access'>"+match[id].access+"</span>";
-      content += "</li>";
+      content += "<tr onclick='joinMatch("+match.id+")'>";
+      content += "<td class='name'>"+match.name+"</td>";
+      content += "<td class='mode'>"+match.mode+"</td>";
+      content += "<td class='access'>"+match.access+"</td>";
+      content += "</tr>";
     }
     games.innerHTML = content;
     registered.style.display = "block";
@@ -29,17 +29,17 @@ window.addEventListener("DOMContentLoaded", e => {
 
   socket.on("onMatchUpdate", function(match){
     console.log("update",match);
-    if(match.state != window.state){
+    if(match.status != window.status){
       var sections = document.querySelector("section");
       for(var i = 0; i < sections.length; i++)
         sections[i].style.display = "none";
-      if(match.state == "lobby") 
+      if(match.status == "lobby") 
         sectionLobby.style.display="block";
-      else if(match.state == "ingame") 
+      else if(match.status == "ingame") 
         sectionIngame.style.display="block";
     }
 
-    if(match.state == "lobby"){
+    if(match.status == "lobby"){
       content = "";
       for(var i = 0; i < match.players; i++){
         content += "<li data-ready='"+ (match.players[i].ready?"true":"false") +"'>" + match.players[i].name + "</li>";
@@ -47,7 +47,7 @@ window.addEventListener("DOMContentLoaded", e => {
       players.innerHTML = content;
     }
 
-    if(match.state == "ingame"){
+    if(match.status == "ingame"){
       match.players.sort(function(a,b) {
         return a.score - b.score;
       });
@@ -97,5 +97,6 @@ function createMatch(name,password,mode){
   });
 }
 function joinMatch(id){
+  console.log("want to joinMatch",id);
   socket.emit("joinMatch",{"id":id});
 }
