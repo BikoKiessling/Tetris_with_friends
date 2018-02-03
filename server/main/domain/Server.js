@@ -14,7 +14,8 @@ module.exports = class Server {
     }
 
     createMatch(match) {
-        this.matches.push(match);
+
+        match.id=this.matches.push(match)-1;
     }
 
     getMatch(matchId) {
@@ -22,7 +23,17 @@ module.exports = class Server {
     }
 
     getMatches() {
-        return this.matches;
+        return this.matches.map(match => {
+            const clone = Object.assign({}, match);
+            clone.players = match.players.map(player => ({
+                id: player.id,
+                score: player.score,
+                name: player.name,
+                color:player.color,
+                ready:player.ready
+            }));
+            return clone;
+        });
     }
 
     emitMatchListUpdate(player, broadcast) {

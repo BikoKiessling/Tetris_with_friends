@@ -11,6 +11,6 @@ module.exports = Object.freeze({
     JOINMATCH: "joinMatch",
     CREATEMATCH: 'createMatch',
     REGISTER: "register",
-    ONSCOREUPDATE: "onScoreUpdate"
+    SCOREUPDATE: "scoreUpdate"
 });
 

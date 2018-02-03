@@ -36,17 +36,24 @@ io.on('connection', function (socket) {
         server.createMatch(new Match(match, this.player));
 
         //update list of other players
-        server.emitMatchListUpdate(this.player,true);
+        server.emitMatchListUpdate(this.player, true);
     });
 
 
-    this.player.socket.on(constants.JOINMATCH, (match) => {
-        server.getMatch(match.id).join(player, match.password);
+    this.player.socket.on(constants.JOINMATCH, (matchData) => {
+        const match = server.getMatch(matchData.id);
+        switch (match.access) {
+            case "public":
+                match.join(this.player);
+                break;
+            case "private":
+                match.join(this.player, match.password);
+        }
     });
 
 
     this.player.socket.on(constants.READYSTATECHANGE, (state) => {
-        player.ready = state
+        this.player.ready = state
     });
 
 
@@ -64,10 +71,12 @@ io.on('connection', function (socket) {
         server.getMatch(this.player.currentLobby).emitNextBlock(playField);
     });
 
-    // socket.socket.emit("onPlayFieldUpdate",
-    //     server.getMatch(this.player.currentLobby).getVisiblePlayFields(this.player.id));
+
+// socket.socket.emit("onPlayFieldUpdate",
+//     server.getMatch(this.player.currentLobby).getVisiblePlayFields(this.player.id));
 
 
-});
+})
+;
 
 

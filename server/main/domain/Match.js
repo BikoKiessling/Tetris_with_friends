@@ -1,5 +1,5 @@
 const constants = require("../foundation/Constants");
-const gameMode = require("../foundation/GameMode");
+const mode = require("../foundation/Mode");
 const status = require("../foundation/Status");
 module.exports = class Match {
 
@@ -11,9 +11,11 @@ module.exports = class Match {
         this.access = "public";
         this.blockSequence = Array.from({length: 4096}, () => Math.floor(Math.random() * 7 + 1));
         this.players = [];
-        this.join(player);
-        this.gameMode = gameMode.SURVIVAL;
+        this.mode = mode.SURVIVAL;
         this.status = status.LOBBY;
+
+        this.join(player);
+
 
     }
 
@@ -26,14 +28,17 @@ module.exports = class Match {
 
         //emit player without socket
         const clone = Object.assign({}, this);
-        clone.players = clone.players.map(player => {
-            player.id, player.name, player.color.player.score, player.ready
-        });
-
+        clone.players = clone.players.map(player => ({
+            id: player.id,
+            score: player.score,
+            name: player.name,
+            color:player.color,
+            ready:player.ready
+        }));
         player.socket.emit(constants.ONMATCHUPDATE, clone);
     }
 
-    emitNextBlock(playField) {
+    emitNextBlock(player,playField) {
         switch (this.gamemode) {
             default:
                 playField.currentBlock++;
