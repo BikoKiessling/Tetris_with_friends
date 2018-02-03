@@ -4,9 +4,11 @@ module.exports = Object.freeze({
     ONMATCHUPDATE: "onMatchUpdate",
     ONSCOREUPDATE: "onScoreUpdate",
     ONBLOCKSET: "onBlockSet",
+    ONPLAYFIELDUPDATE: "onPlayFieldUpdate"
     //Client Events
     BLOCKSET: "blockSet",
     LEAVEMATCH: "leaveMatch",
+    DISCONNECT: "disconnect",
     READYSTATECHANGE: "readyStateChange",
     JOINMATCH: "joinMatch",
     CREATEMATCH: 'createMatch',

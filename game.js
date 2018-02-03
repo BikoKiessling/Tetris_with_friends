@@ -14,12 +14,6 @@ function increaseScore(val) {
   score += val;
   socket.emit("updateScore", { "score": score });
 }
-window.addEventListener("DOMContentLoaded", function () {
-  g = myCanvas.getContext("2d")
-  b = 30;
-  game = new Game();
-  game.tick();
-});
 
 function drawField(c, field){
   var g = c.getContext("2d");
@@ -65,6 +59,18 @@ function Game() {
     if(val > 6000) this.time = 100;
     //socket.emit("scoreUpdate", {"score": this.score});
   }
+  this.getField = function(){
+    var res = [];
+    for(var y = 0; y < this.h; y++)
+      for(var x = 0; x < this.w; x++){
+        res.push(this.field[y][x]);
+      }
+    for(var y = 0; y < this.block.tiles.length; y++)
+      for(var x = 0; x < this.block.tiles[y].length; x++){
+        res[y*this.block.tiles[y].length+x] = this.block.color;
+      }
+    return res;
+  }
   this.draw = function () {
     g.clearRect(0, 0, this.w * b, this.h * b);
     for (var x = 0; x < this.w; x++)
@@ -92,6 +98,7 @@ function Game() {
       this.block.y++;
     }
     game.draw();
+    socket.emit("playFieldUpdate", this.getField());
 
   }
   this.removeLines = function () {

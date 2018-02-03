@@ -3,7 +3,7 @@ const mode = require("../foundation/Mode");
 const status = require("../foundation/Status");
 module.exports = class Match {
 
-    constructor(match, player) {
+    constructor(match) {
 
         match && Object.assign(this, match);
         this.playerMaximum = 8;
@@ -14,31 +14,53 @@ module.exports = class Match {
         this.mode = mode.SURVIVAL;
         this.status = status.LOBBY;
 
-        this.join(player);
-
 
     }
 
     join(player, password) {
         if (this.players.length === this.playerMaximum) return player.socket.emit("onError", "this lobby is already full!");
-        if (this.access==="private" && this.password !== password) return player.socket.emit("onError", "wrong password entered!");
+        if (this.access === "private" && this.password !== password) return player.socket.emit("onError", "wrong password entered!");
 
         this.players.push(player);
         player.setLobby(this.id);
 
+        player.socket.emit(constants.ONMATCHUPDATE, this.buildUpdatePackage());
+    }
+
+    leave(player) {
+        this.players = this.players.filter(player1 => player1.id !== player.id);
+        this.players.forEach(player1 => {
+            player1.socket.emit(constants.ONMATCHUPDATE, this.buildUpdatePackage());
+        })
+    }
+
+    buildUpdatePackage() {
         //emit player without socket
         const clone = Object.assign({}, this);
         clone.players = clone.players.map(player => ({
             id: player.id,
             score: player.score,
             name: player.name,
-            color:player.color,
-            ready:player.ready
+            color: player.color,
+            ready: player.ready
         }));
-        player.socket.emit(constants.ONMATCHUPDATE, clone);
+        return clone;
     }
 
-    emitNextBlock(player,playField) {
+    emitMatchUpdate(player) {
+        const builtUpdatePackage = this.buildUpdatePackage();
+        player.socket.broadcast.emit(constants.ONMATCHUPDATE, builtUpdatePackage);
+        player.socket.emit(constants.ONMATCHUPDATE, builtUpdatePackage);
+    }
+
+    checkReadyState(player) {
+        if (this.players.filter(player => player.ready === true).length >= this.players.length / 2) {
+            this.status = status.INGAME;
+            this.emitMatchUpdate(player);
+        }
+    }
+
+    emitNextBlock(player, playField) {
         switch (this.gamemode) {
             default:
                 playField.currentBlock++;

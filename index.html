@@ -4,6 +4,7 @@
     <script src="logistic.js"></script>
     <link rel="stylesheet" href="start.css">
     <script src="socket.io.js"></script>
+    <script src="game.js"></script>
   </head>
   <body>
     <section id="sectionStart">
@@ -53,9 +54,12 @@
     </section>
     <section id="sectionIngame" style="display:none">
       <div id="leaderboard"></div>
-      <canvas id="myCanvas"></canvas>
-      <canvas id="bestCanvas"></canvas>
-      <canvas id="worstCanvas"></canvas>
+      <canvas id="myCanvas" width="300" height="540"></canvas>
+      <div id="scoreElement"></div>
+      <div id="others">
+        <canvas id="bestCanvas" width="100" height="180"></canvas>
+        <canvas id="worstCanvas" width="100" height="180"></canvas>
+      </div>
     </section>
   </body>
   <div id="notice">

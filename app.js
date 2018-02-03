@@ -32,7 +32,7 @@ io.on('connection', function (socket) {
 
     player.socket.on(constants.CREATEMATCH, (matchData) => {
         console.log("create match: " + matchData);
-        server.createMatch(new Match(matchData, player));
+        server.createMatch(new Match(matchData), player);
 
         //update list of other players
         server.emitMatchListUpdate(player, true);
@@ -47,13 +47,20 @@ io.on('connection', function (socket) {
                 break;
             case "private":
                 match.join(player, match.password);
+                break;
+
         }
+        match.emitMatchUpdate(player);
     });
 
-    player.socket.on(constants.READYSTATECHANGE, (state) => {
-        player.ready = state
+    player.socket.on(constants.READYSTATECHANGE, (data) => {
+        player.ready = data.ready;
+        const match = server.getMatch(player.currentLobby);
+        //inform about "ready" state
+        match.emitMatchUpdate(player);
+        //transition into ingame state
+        match.checkReadyState(player);
     });
-
 
     player.socket.on(constants.LEAVEMATCH, match => {
         server.getMatch(match.id).leave(player);
@@ -65,13 +72,19 @@ io.on('connection', function (socket) {
         scoreBoard.emitScoreBoard(player.socket.broadcast);
     });
 
+    player.socket.on(constants.DISCONNECT, () => {
+        if (player.currentLobby !== -1) server.getMatch(player.currentLobby).leave(player);
+    });
     player.socket.on(constants.BLOCKSET, playField => {
         server.getMatch(player.currentLobby).emitNextBlock(playField);
     });
 
+    player.socket.on(constants.ONPLAYFIELDUPDATE, playField => {
+        [1, 2, 3, 4].includes(server.getMatch(player.currentLobby).getScoreboard().getRanking(player.id));
 
-// socket.socket.emit("onPlayFieldUpdate",
-//     server.getMatch(this.player.currentLobby).getVisiblePlayFields(this.player.id));
+    });
+    socket.socket.emit("onPlayFieldUpdate",
+        server.getMatch(this.player.currentLobby).getVisiblePlayFields(this.player.id));
 
 
 })

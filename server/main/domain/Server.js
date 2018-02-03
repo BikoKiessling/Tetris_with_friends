@@ -14,14 +14,15 @@ module.exports = class Server {
         this.emitMatchListUpdate(player);
     }
 
-    createMatch(match) {
-
+    createMatch(match,player) {
         match.id=this.matches.push(match)-1;
+        match.join(player);
     }
 
     getMatch(matchId) {
         return this.matches.filter((match) => match.id === matchId)[0];
     }
+
 
     getMatches() {
         return this.matches.map(match => {
@@ -54,10 +55,13 @@ module.exports = class Server {
         player.currentLobby = -1;
 
         //remove player by id;
-        const index = this.players.map(function (player) {
-            return player.id;
-        }).indexOf(player.id);
-        this.players.splice(index, 1);
+        // const index = this.players.map(function (player) {
+        //     return player.id;
+        // }).indexOf(player.id);
+        // this.players.splice(index, 1);
+        this.players=this.players.filter(player1 => player1.id !== player.id);
+
+
     }
 
 };
