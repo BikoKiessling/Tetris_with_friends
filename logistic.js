@@ -71,7 +71,7 @@ window.addEventListener("DOMContentLoaded", e => {
   
   socket.on("onPlayFieldUpdate", function(data){
 
-    // TODO update
+    drawField(document.getElementById(data.position+"Canvas"), data.data);
 
   });
 
