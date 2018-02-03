@@ -1,5 +1,5 @@
 var socket, name;
-var ip = "http://172.16.8.155:8080";
+var ip = "http://192.168.43.87:8080/";
 var state = "start";
 var ready = false;
 
@@ -9,9 +9,11 @@ window.addEventListener("DOMContentLoaded", e => {
   socket.on('connect', function(){
     console.log("connected");
     loggedin.style.display = "block";
+    connecting.style.display = "none";
   });
   
   socket.on('onMatchListUpdate', function(matchlist){
+    console.log("updatelist",matchlist);
     var content = "";
     for(var i = 0; i < matchlist.length; i++){
       var match = matchlist[i];
@@ -22,23 +24,25 @@ window.addEventListener("DOMContentLoaded", e => {
       content += "</li>";
     }
     games.innerHTML = content;
+    registered.style.display = "block";
   });
 
   socket.on("onMatchUpdate", function(match){
+    console.log("update",match);
     if(match.state != window.state){
       var sections = document.querySelector("section");
       for(var i = 0; i < sections.length; i++)
         sections[i].style.display = "none";
-      if(matchState == "lobby") 
+      if(match.state == "lobby") 
         sectionLobby.style.display="block";
-      else if(matchState == "ingame") 
+      else if(match.state == "ingame") 
         sectionIngame.style.display="block";
     }
 
     if(match.state == "lobby"){
       content = "";
       for(var i = 0; i < match.players; i++){
-        content += "<li>" + match.players[i].name + "</li>";
+        content += "<li data-ready='"+ (match.players[i].ready?"true":"false") +"'>" + match.players[i].name + "</li>";
       }
       players.innerHTML = content;
     }
@@ -74,6 +78,7 @@ function onReadyStateChange(){
 function register(name){
   window.name = name;
   socket.emit("register", {"name":name});
+  console.log("register", {"name":name});
 }
 function openCreateDialog(){
   createDialog.style.display = "block";

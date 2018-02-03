@@ -3,8 +3,8 @@
   position:absolute;
   top:50%;
   left:50%;
-  width:250px;
-  height:100px;
+  width:400px;
+  height:300px;
   background:white;
   transform: translate(-50%, -50%);
 }
@@ -17,4 +17,7 @@
   height:100%;
   background:black;
   opacity:.5;
+}
+#players [data-ready="true"]{
+  font-weight: bold;
 }

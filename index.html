@@ -3,16 +3,19 @@
     <title>Tetris with friends</title>
     <script src="logistic.js"></script>
     <link rel="stylesheet" href="start.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+    <script src="socket.io.js"></script>
   </head>
   <body>
     <section id="sectionStart">
       <h1>Tetris with friends</h1>
+      <div id="connecting">
+        connecting...
+      </div>
       <div id="loggedin" style="display:none">
         <p>
           Enter your name:
-          <input id="name"></input>
-          <button onclick="register(name.value)">Ok</button>
+          <input id="nameElement"></input>
+          <button onclick="register(nameElement.value)">Ok</button>
         </p>
         <div id="registered" style="display:none">
         <p>
@@ -34,7 +37,7 @@
         <small>Leave password empty, if you want the game to be public.</small></p>
         <p>Gamemode: Survival</p>
         <p>
-          <button onclick="closeCreateDialog();">Create game</button>
+          <button onclick="closeCreateDialog();">Abort</button>
           <button onclick="closeCreateDialog();createMatch(createName.value,createPassword.value);">Create game</button>
         </p>
       </div>
