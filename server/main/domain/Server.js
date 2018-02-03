@@ -11,6 +11,7 @@ module.exports = class Server {
     registerPlayer(player) {
         //add element to array and set id to proper array position
         player.id = this.players.push(player) - 1;
+        this.emitMatchListUpdate(player);
     }
 
     createMatch(match) {
@@ -19,7 +20,7 @@ module.exports = class Server {
     }
 
     getMatch(matchId) {
-        return this.matches.filter((match) => match.id === matchId);
+        return this.matches.filter((match) => match.id === matchId)[0];
     }
 
     getMatches() {
