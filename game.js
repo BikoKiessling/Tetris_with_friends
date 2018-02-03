@@ -1,4 +1,4 @@
-var colors = ["#000", "red", "yellow", "blue", "green", "orange", "purple", "lightblue"];
+var colors = ["#ddd", "#AA3939", "#AA6C39", "#226666", "#2D882D", "#AA9E39", "#492E74", "#729C34"];
 var g, b;
 var blockTypes = [
   [[false, true, false], [true, true, true]],
@@ -16,7 +16,7 @@ function increaseScore(val) {
 }
 window.addEventListener("DOMContentLoaded", function () {
   g = myCanvas.getContext("2d")
-  b = 20;
+  b = 30;
   game = new Game();
   game.tick();
 });
@@ -45,27 +45,35 @@ function Game() {
 
   this.tick = function () {
 
-    var w = 10;
-    var h = 18;
-
-    g.clearRect(0, 0, w * b, h * b);
     game.do();
+    console.log(this.time);
 
     var t = this;
     if (this.running)
       setTimeout(function () {
         t.tick();
-      }, 800);
+      }, this.time);
   }
   this.increaseScore = function (val) {
     this.score += val;
     scoreElement.innerHTML = "Score: " + this.score;
+    if(val > 1000) this.time = 600;
+    if(val > 2000) this.time = 500;
+    if(val > 3000) this.time = 300;
+    if(val > 4000) this.time = 300;
+    if(val > 5000) this.time = 200;
+    if(val > 6000) this.time = 100;
     //socket.emit("scoreUpdate", {"score": this.score});
   }
   this.draw = function () {
+    g.clearRect(0, 0, this.w * b, this.h * b);
     for (var x = 0; x < this.w; x++)
       for (var y = 0; y < this.h; y++) {
         g.fillStyle = colors[this.field[y][x]];
+        if(this.field[y][x] == 0 && (x+y)%2 == 0)
+          g.globalAlpha = 0.8;
+        else
+          g.globalAlpha = 1;
         g.fillRect(x * b, y * b, b, b);
       }
     this.block.draw(g, b);
