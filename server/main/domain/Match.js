@@ -20,8 +20,8 @@ module.exports = class Match {
     }
 
     join(player, password) {
-        if (this.players.length === this.playerMaximum) return player.emit("onError", "this lobby is already full!");
-        if (this.password === password) return player.emit("onError", "wrong password entered!");
+        if (this.players.length === this.playerMaximum) return player.socket.emit("onError", "this lobby is already full!");
+        if (this.access==="private" && this.password !== password) return player.socket.emit("onError", "wrong password entered!");
 
         this.players.push(player);
         player.setLobby(this.id);

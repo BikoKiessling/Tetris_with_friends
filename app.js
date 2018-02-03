@@ -18,57 +18,55 @@ http.listen(8080, function () {
 io.on('connection', function (socket) {
 
     //configure player
-    this.player = new Player(socket);
+    const player = new Player(socket);
 
-    console.log("player connected " + this.player.id);
+    console.log("player connected " + player.id);
 
     //game management handlers
-    this.player.socket.on(constants.REGISTER, player => {
-        console.log("register: ", player);
-        this.player.assignFields(player);
-        server.registerPlayer(this.player);
-        server.emitMatchListUpdate(this.player);
+    player.socket.on(constants.REGISTER, playerData => {
+        console.log("register: ", playerData);
+        player.assignFields(playerData);
+        server.registerPlayer(player);
     });
 
 
-    this.player.socket.on(constants.CREATEMATCH, (match) => {
-        console.log("create match: " + match);
-        server.createMatch(new Match(match, this.player));
+    player.socket.on(constants.CREATEMATCH, (matchData) => {
+        console.log("create match: " + matchData);
+        server.createMatch(new Match(matchData, player));
 
         //update list of other players
-        server.emitMatchListUpdate(this.player, true);
+        server.emitMatchListUpdate(player, true);
     });
 
 
-    this.player.socket.on(constants.JOINMATCH, (matchData) => {
+    player.socket.on(constants.JOINMATCH, (matchData) => {
         const match = server.getMatch(matchData.id);
         switch (match.access) {
             case "public":
-                match.join(this.player);
+                match.join(player);
                 break;
             case "private":
-                match.join(this.player, match.password);
+                match.join(player, match.password);
         }
     });
 
-
-    this.player.socket.on(constants.READYSTATECHANGE, (state) => {
-        this.player.ready = state
+    player.socket.on(constants.READYSTATECHANGE, (state) => {
+        player.ready = state
     });
 
 
-    this.player.socket.on(constants.LEAVEMATCH, match => {
+    player.socket.on(constants.LEAVEMATCH, match => {
         server.getMatch(match.id).leave(player);
     });
 
-    this.player.socket.on(constants.SCOREUPDATE, score => {
-        const scoreBoard = server.getMatch(this.player.currentLobby).getScoreBoard();
+    player.socket.on(constants.SCOREUPDATE, score => {
+        const scoreBoard = server.getMatch(player.currentLobby).getScoreBoard();
         scoreBoard.updateScore(score);
-        scoreBoard.emitScoreBoard(this.player.socket.broadcast);
+        scoreBoard.emitScoreBoard(player.socket.broadcast);
     });
 
-    this.player.socket.on(constants.BLOCKSET, playField => {
-        server.getMatch(this.player.currentLobby).emitNextBlock(playField);
+    player.socket.on(constants.BLOCKSET, playField => {
+        server.getMatch(player.currentLobby).emitNextBlock(playField);
     });
 
 
