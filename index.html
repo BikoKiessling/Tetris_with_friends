@@ -1,22 +1,55 @@
 <html>
   <head>
     <title>Tetris with friends</title>
+    <script src="logistic.js"></script>
+    <link rel="stylesheet" href="start.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
   </head>
   <body>
-    <h1>Tetris with friends</h1>
-    <p>
-      Enter your name:
-      <input id="name"></input>
-      <button onclick="register()">Ok</button>
-    </p>
-    <p>
-      Here are some open games:
-      <ul id="games">
+    <section id="sectionStart">
+      <h1>Tetris with friends</h1>
+      <div id="loggedin" style="display:none">
+        <p>
+          Enter your name:
+          <input id="name"></input>
+          <button onclick="register(name.value)">Ok</button>
+        </p>
+        <div id="registered" style="display:none">
+        <p>
+          Here are some open games:
+          <ul id="games">
 
+          </ul>
+        </p>
+        <p>
+          <button onclick="openCreateDialog()">Create a game</button>
+        </p>
+        </div>
+      </div>
+      <div id="dialogOverlay"></div>
+      <div id="createDialog">
+        <h2>Create game</h2>
+        <p>Name: <input id="createName"></input></p>
+        <p>Password: <input id="createPassword"></input>
+        <small>Leave password empty, if you want the game to be public.</small></p>
+        <p>Gamemode: Survival</p>
+        <p>
+          <button onclick="closeCreateDialog();">Create game</button>
+          <button onclick="closeCreateDialog();createMatch(createName.value,createPassword.value);">Create game</button>
+        </p>
+      </div>
+    </section>
+    <section id="sectionLobby" style="display:none">
+      <h1 id="matchName"></h1>
+      <ul id="players">
       </ul>
-    </p>
-    <p>
-      <button onclick="openCreateDialog()">Create a game</button>
-    </p>
+      <button id="readyButton" onclick="onReadyStateChange()">Ready</button>
+    </section>
+    <section id="sectionIngame" style="display:none">
+      <div id="leaderboard"></div>
+      <canvas id="myCanvas"></canvas>
+      <canvas id="bestCanvas"></canvas>
+      <canvas id="worstCanvas"></canvas>
+    </section>
   </body>
 </html>
