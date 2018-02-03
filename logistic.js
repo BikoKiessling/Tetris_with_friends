@@ -30,7 +30,7 @@ window.addEventListener("DOMContentLoaded", e => {
   socket.on("onMatchUpdate", function(match){
     console.log("update",match);
     if(match.status != window.status){
-      var sections = document.querySelector("section");
+      var sections = document.querySelectorAll("section");
       for(var i = 0; i < sections.length; i++)
         sections[i].style.display = "none";
       if(match.status == "lobby") 
@@ -41,10 +41,11 @@ window.addEventListener("DOMContentLoaded", e => {
 
     if(match.status == "lobby"){
       content = "";
-      for(var i = 0; i < match.players; i++){
+      for(var i = 0; i < match.players.length; i++){
         content += "<li data-ready='"+ (match.players[i].ready?"true":"false") +"'>" + match.players[i].name + "</li>";
       }
       players.innerHTML = content;
+      matchName.innerHTML = "Lobby: "+match.name;
     }
 
     if(match.status == "ingame"){

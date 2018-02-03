@@ -4,6 +4,10 @@
   font-weight: 400;
   src: url(press.woff2) format('woff2');
 }
+*{
+  z-index:10;
+  position: relative;
+}
 body{
   margin:0;
   font-family:sans-serif;
@@ -21,7 +25,7 @@ h2{
   text-shadow: 1px 1px 0px #555, 2px 2px 0px #555;
 }
 input{
-  padding:4px 6px;
+  padding:5px 10px;
   border-radius:2px;
   border:1px solid #666;
   outline: none !important;
@@ -67,7 +71,7 @@ button:hover{
 #players [data-ready="true"]{
   font-weight: bold;
 }
-#sectionStart,#sectionLobby{
+#sectionStart, #sectionLobby{
   padding-top:10px;
   padding-bottom:10px;
   padding-left:5%;
@@ -75,6 +79,8 @@ button:hover{
   background:#ddd;
   color:#111;
   height:calc(100% - 20px);
+  z-index:0;
+  overflow:hidden;
 }
 #notice{
   position:absolute;
@@ -82,6 +88,35 @@ button:hover{
   right:10px;
   color:#aaa;
   font-size:12px;
+}
+img{
+  position:absolute;
+  width:200px;
+  z-index:1;
+  opacity:.2;
+  filter:blur(10px);
+  animation: move 5s linear 0s infinite alternate;
+}
+#pic1{
+  top:30%;
+  left:5%;
+  animation-duration: 3s;
+}
+#pic2{
+  top:70%;
+  left:50%;
+  animation-duration: 4s;
+}
+#pic3{
+  top:10%;
+  left:80%;
+  width:122px;
+}
+@keyframes move{
+  0%{transform:rotate(0deg);margin-top:10px;}
+  33%{transform:rotate(90deg);margin-top:0px;}
+  66%{transform:rotate(20deg);margin-top:-20px;}
+  100%{transform:rotate(30deg);margin-top:20px;}
 }
 @media(min-width:750px){
   #sectionStart,#sectionLobby{
