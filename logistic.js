@@ -6,6 +6,7 @@ var ready = false;
 window.addEventListener("DOMContentLoaded", e => {
 
   socket = io(ip);
+  test();
   socket.on('connect', function(){
     console.log("connected");
     loggedin.style.display = "block";
@@ -31,12 +32,20 @@ window.addEventListener("DOMContentLoaded", e => {
     console.log("update",match);
     if(match.status != window.status){
       var sections = document.querySelectorAll("section");
+
       for(var i = 0; i < sections.length; i++)
         sections[i].style.display = "none";
-      if(match.status == "lobby") 
+
+      if(match.status == "lobby"){
         sectionLobby.style.display="block";
-      else if(match.status == "ingame") 
+
+      }else if(match.status == "ingame"){
         sectionIngame.style.display="block";
+        g = myCanvas.getContext("2d")
+        b = 30;
+        game = new Game();
+        game.tick();
+      }
     }
 
     if(match.status == "lobby"){
@@ -100,4 +109,18 @@ function createMatch(name,password,mode){
 function joinMatch(id){
   console.log("want to joinMatch",id);
   socket.emit("joinMatch",{"id":id});
+}
+
+function test(){
+  
+  var sections = document.querySelectorAll("section");
+
+  for(var i = 0; i < sections.length; i++)
+    sections[i].style.display = "none";
+  sectionIngame.style.display="block";
+  g = myCanvas.getContext("2d")
+  b = 30;
+  game = new Game();
+  game.tick();
+  
 }

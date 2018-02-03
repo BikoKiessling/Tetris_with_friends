@@ -14,12 +14,6 @@ function increaseScore(val) {
   score += val;
   socket.emit("updateScore", { "score": score });
 }
-window.addEventListener("DOMContentLoaded", function () {
-  g = myCanvas.getContext("2d")
-  b = 30;
-  game = new Game();
-  game.tick();
-});
 
 function drawField(c, field){
   var g = c.getContext("2d");
