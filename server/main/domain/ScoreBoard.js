@@ -13,4 +13,6 @@ module.exports = class ScoreBoard {
     emitScoreBoard(player) {
         player.socket.broadcast.emit(constants.ONBLOCKSET,this.scores);
     }
+
+
 }
