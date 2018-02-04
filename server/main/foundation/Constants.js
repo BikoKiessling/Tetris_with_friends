@@ -16,5 +16,6 @@ module.exports = Object.freeze({
     SCOREUPDATE: "scoreUpdate",
     PLAYFIELDUPDATE: "playFieldUpdate",
     ONREGISTER: "onRegister"
+
 });
 

@@ -12,7 +12,7 @@ module.exports = class Server {
         //add element to array and set id to proper array position
         player.id = this.players.push(player) - 1;
         this.emitMatchListUpdate(player);
-        this.emitUserId(player);
+        this.emitPlayerId(player);
     }
 
     createMatch(match,player) {
@@ -22,6 +22,9 @@ module.exports = class Server {
 
     getMatch(matchId) {
         return this.matches.filter((match) => match.id === matchId)[0];
+    }
+    deleteMatch(matchId){
+       this.matches = this.matches.filter((match) => match.id !== matchId);
     }
 
 
@@ -46,7 +49,10 @@ module.exports = class Server {
     emitMatchListUpdate(player, broadcast) {
         switch (broadcast) {
             case true:
-                player.socket.broadcast.emit(constants.ONMATCHLISTUPDATE, this.getMatches());
+                const matchList = this.getMatches();
+                this.players.forEach(function(player){
+                    player.socket.emit(constants.ONMATCHLISTUPDATE, matchList);
+                });
                 break;
             default:
                 player.socket.emit(constants.ONMATCHLISTUPDATE, this.getMatches());
@@ -54,10 +60,8 @@ module.exports = class Server {
 
     }
 
-
     leave(player) {
         this.players=this.players.filter(player1 => player1.id !== player.id);
-
 
     }
 
