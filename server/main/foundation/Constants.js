@@ -14,6 +14,8 @@ module.exports = Object.freeze({
     CREATEMATCH: 'createMatch',
     REGISTER: "register",
     SCOREUPDATE: "scoreUpdate",
-    PLAYFIELDUPDATE: "playFieldUpdate"
+    PLAYFIELDUPDATE: "playFieldUpdate",
+    ONREGISTER: "onRegister"
+
 });
 

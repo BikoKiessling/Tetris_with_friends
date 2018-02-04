@@ -54,40 +54,44 @@ io.on('connection', function (socket) {
     });
 
     player.socket.on(constants.READYSTATECHANGE, (data) => {
+
+        const match = server.getMatch(player.matchId);
+        if (match.players === 1) return player.socket.emit("onWarning", "You cannot start a game by yourself!");
         player.ready = data.ready;
-        const match = server.getMatch(player.currentLobby);
         //inform about "ready" state
-        match.emitMatchUpdateBroadcast(player);
+        match.emitMatchUpdateAll(player);
         //transition into ingame state
         match.checkReadyState(player);
     });
 
-    player.socket.on(constants.LEAVEMATCH, match => {
-        server.getMatch(match.id).leave(player);
+    player.socket.on(constants.LEAVEMATCH, ()=> {
+        server.getMatch(player.matchId).leave(player);
     });
 
     player.socket.on(constants.SCOREUPDATE, score => {
-        const match = server.getMatch(player.currentLobby);
+
+        const match = server.getMatch(player.matchId);
         player.score = score.score;
-        server.getMatch(player.currentLobby).emitMatchUpdateAll(player);
+        server.getMatch(player.matchId).emitMatchUpdateAll(player);
     });
 
     player.socket.on(constants.DISCONNECT, () => {
-        if (player.currentLobby !== -1) server.getMatch(player.currentLobby).leave(player);
+        if (player.matchId !== -1) server.getMatch(player.matchId).leave(player);
+        server.leave(player);
+
     });
     player.socket.on(constants.BLOCKSET, playField => {
         console.log("block set: " + playField);
-        server.getMatch(player.currentLobby).emitNextBlock(playField);
+
+        server.getMatch(player.matchId).emitNextBlock(playField);
     });
 
     player.socket.on(constants.PLAYFIELDUPDATE, playField => {
         console.log("playfield update: " + playField);
         player.playField = playField;
-        server.getMatch(player.currentLobby).getVisiblePlayFields(player);
 
-
+        server.getMatch(player.matchId).emitVisiblePlayFields(player);
     });
-
 
 })
 ;

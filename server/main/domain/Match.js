@@ -14,6 +14,7 @@ module.exports = class Match {
         this.players = [];
         this.mode = mode.SURVIVAL;
         this.status = status.LOBBY;
+        this.timeout = 20;
         this.scoreboard = new ScoreBoard();
 
     }
@@ -30,6 +31,7 @@ module.exports = class Match {
 
     leave(player) {
         this.players = this.players.filter(player1 => player1.id !== player.id);
+        player.matchId = -1;
         this.players.forEach(player1 => {
             player1.socket.emit(constants.ONMATCHUPDATE, this.buildUpdatePackage());
         })
@@ -65,7 +67,18 @@ module.exports = class Match {
         if (this.players.filter(player => player.ready === true).length >= this.players.length / 2) {
             this.status = status.INGAME;
             this.emitMatchUpdateAll(player);
-        }
+            switch (this.mode) {
+                case mode.SURVIVAL:
+
+                case mode.ELIMINATION:
+                    setInterval(this.timeOut * 1000, () => {
+                        //last place gets removed from game
+                        this.leave(this.players.sort((a, b) => a.score - b.score)[0]);
+                        this.emitMatchUpdateAll(player);
+                    });
+                case mode.SWITCH:
+            }
+     }
     }
 
     emitNextBlock(player, playField) {
@@ -88,6 +101,7 @@ module.exports = class Match {
         this.players.map(player => player.playfield);
     }
 
+
     emitPlayFieldUpdate(player,playFields)
     {
         player.socket.broadcast.emit(constants.ONPLAYFIELDUPDATE,playFields)
@@ -105,6 +119,22 @@ module.exports = class Match {
                 playField: players[players.length - 1].playField
             }]);
 
+
+
+
+
+    emitVisiblePlayFields(player) {
+        const players = this.players.filter(player1 => player1.id !== player.id);
+        players.sort((a, b) => b.score - a.score);
+        player.socket.emit("onLog", "my name: " + player.name + "best: " + players[0].name + "worst: " + players[players.length - 1].name);
+        player.socket.emit(constants.ONPLAYFIELDUPDATE, [{
+            name: players[0].name,
+            playField: players[0].playField
+        },
+            {
+                name: players[players.length - 1].name,
+                playField: players[players.length - 1].playField
+            }]);
 
     }
 
