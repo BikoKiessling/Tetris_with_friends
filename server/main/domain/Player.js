@@ -10,7 +10,7 @@ module.exports = class Player {
         //create random color HEX code
         this.color = "#" + ((1 << 24) * Math.random() | 0).toString(16);
         this.ip = socket.handshake.address;
-        this.currentLobby = -1;
+        this.matchId = -1;
         this.ready = false;
         this.score=0;
         this.playField = new PlayField(this.id);
@@ -22,7 +22,7 @@ module.exports = class Player {
     }
 
     setLobby(lobbyId) {
-        this.currentLobby = lobbyId;
+        this.matchId = lobbyId;
     }
 
 };

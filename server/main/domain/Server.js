@@ -12,6 +12,7 @@ module.exports = class Server {
         //add element to array and set id to proper array position
         player.id = this.players.push(player) - 1;
         this.emitMatchListUpdate(player);
+        this.emitUserId(player);
     }
 
     createMatch(match,player) {
@@ -38,6 +39,10 @@ module.exports = class Server {
         });
     }
 
+    emitPlayerId(player)
+    {
+        player.socket.emit(constants.ONREGISTER,player.id);
+    }
     emitMatchListUpdate(player, broadcast) {
         switch (broadcast) {
             case true:
@@ -51,14 +56,6 @@ module.exports = class Server {
 
 
     leave(player) {
-        if (player.currentLobby === -1) player.emit("onWarning", "You are in no lobby!");
-        player.currentLobby = -1;
-
-        //remove player by id;
-        // const index = this.players.map(function (player) {
-        //     return player.id;
-        // }).indexOf(player.id);
-        // this.players.splice(index, 1);
         this.players=this.players.filter(player1 => player1.id !== player.id);
 
 
