@@ -10,11 +10,6 @@ var blockTypes = [
   [[false, true], [true, true], [true, false]]
 ];
 
-function increaseScore(val) {
-  score += val;
-  socket.emit("updateScore", { "score": score });
-}
-
 function drawField(c, field){
   c = document.getElementById(c);
   var g = c.getContext("2d");
@@ -58,6 +53,7 @@ function Game() {
     if(val > 5000) this.time = 200;
     if(val > 6000) this.time = 100;
     socket.emit("scoreUpdate", {"score": this.score});
+    console.log("scoreUpdate", {"score": this.score});
   }
   this.getField = function(){
     var res = [];
@@ -66,8 +62,9 @@ function Game() {
         res.push(this.field[y][x]);
       }
     for(var y = 0; y < this.block.tiles.length; y++)
-      for(var x = 0; x < this.block.tiles[y].length; x++){
-        res[y*this.block.tiles[y].length+x] = this.block.color;
+      for(var x = 0; x < this.block.tiles[0].length; x++){
+        if(!(this.block.tiles[y][x])) continue;
+        res[(y+this.block.y)*this.w+x+this.block.x] = this.block.color;
       }
     return res;
   }
@@ -136,6 +133,8 @@ function Game() {
             this.field[y + this.block.y][x + this.block.x] = this.block.color;
             else{
               this.running = false;
+              showGameOver((match.players.length)+".","Maybe next time :)");
+              socket.emit("leaveMatch");
               // FINISHED
             }
         }
@@ -202,18 +201,29 @@ function rotate(a) {
   }
   return b;
 }
+function eliminationTick(){
+  timercount--;
+  if(timercount < 0){
+    timercount += 60;
+  }
+  timer.innerHTML = "Next elimination: "+timercount+"s";
+  setTimeout(function(){
+    eliminationTick();
+  }, 1000);
+}
 
 window.addEventListener("keydown", e => {
-  if(!(game)) return;
-  if (e.which == 37) {
-    game.goLeft();
-  } else if (e.which == 39) {
-    game.goRight();
-  } else if (e.which == 40) {
-    if(game.running)
-      game.increaseScore(1);
-    game.do();
-  } else if (e.which == 38) {
-    game.rotate();
+  if(game){
+    if (e.which == 37) {
+      game.goLeft();
+    } else if (e.which == 39) {
+      game.goRight();
+    } else if (e.which == 40) {
+      if(game.running)
+        game.increaseScore(1);
+      game.do();
+    } else if (e.which == 38) {
+      game.rotate();
+    }
   }
 });

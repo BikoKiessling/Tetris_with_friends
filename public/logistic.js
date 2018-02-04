@@ -1,6 +1,6 @@
-var socket, name = null;
+var socket, name = null, game, registeredBool = false, id, timercount;
 var ip = "http://192.168.43.87:8080/";
-var status = "start";
+var status = "start",match;
 var ready = false;
 
 // let's get going
@@ -15,15 +15,29 @@ window.addEventListener("DOMContentLoaded", e => {
     loggedin.style.display = "block";
     connecting.style.display = "none";
   });
+
+  //updates on availables games
+  socket.on('onLog', function(str){
+    console.log("SERVER",str);
+  });
+  //updates on availables games
+  socket.on('onError', function(str){
+    console.error("SERVER",str);
+  });
+
+  //updates on availables games
+  socket.on('onRegister', function(id){
+    window.id = id;
+  });
   
   //updates on availables games
   socket.on('onMatchListUpdate', function(matchlist){
-    if(name == null) return;
-    var content = "";
+    if(!registeredBool) return;
     console.log("updatelist",matchlist);
+    var content = "";
     for(var i = 0; i < matchlist.length; i++){
       var match = matchlist[i];
-      content += "<tr onclick='joinMatch("+match.id+")'>";
+      content += "<tr onclick='join"+(match.access=="private"?"Private":"")+"Match("+match.id+")'>";
       content += "<td class='name'>"+match.name+"</td>";
       content += "<td class='mode'>"+match.mode+"</td>";
       content += "<td class='access'>"+match.access+"</td>";
@@ -37,6 +51,8 @@ window.addEventListener("DOMContentLoaded", e => {
   socket.on("onMatchUpdate", function(match){
 
     //status change
+    console.log("update",match);
+    window.match = match;
     if(match.status != window.status){
       var sections = document.querySelectorAll("section");
 
@@ -54,6 +70,10 @@ window.addEventListener("DOMContentLoaded", e => {
         b = 30;
         game = new Game();
         game.tick();
+        if(match.mode == "elimination"){
+          timercount = 60;
+          setTimeout(function(){eliminationTick();}, 1000);
+        }
       }
       window.status = match.status;
     }
@@ -78,13 +98,26 @@ window.addEventListener("DOMContentLoaded", e => {
         content += "<li>" +  match.players[i].name + " (" + match.players[i].score + ")</li>";
       }
       leaderboardElement.innerHTML = content;
+
+      //game over check
+      var gameOver = true;
+      for(var i = 0; i < match.players.length; i++)
+        if(match.players[i].id == id)
+          gameOver = false;
+      if(gameOver){
+        showGameOver((match.players.length+1)+".","You lost..");
+      }
+
+      //win check
+      if(match.players.length <= 1 && !gameOver){
+        showGameOver("Good job","You won!");
+      }
     }
   });
   
   //when playfield received, show them in sections
   socket.on("onPlayFieldUpdate", function(data){
 
-    console.log("onPlayFieldUpdate", data);
     bestName.innerHTML = data[0].name;
     worstName.innerHTML = data[1].name;
     drawField("bestCanvas", data[0].playField);
@@ -105,8 +138,9 @@ function onReadyStateChange(){
 }
 function register(name){
   window.name = name;
+  registeredBool = true;
+  loggedin.style.display = "none";
   socket.emit("register", {"name":name});
-  console.log("register", {"name":name});
 }
 function openCreateDialog(){
   createDialog.style.display = "block";
@@ -121,11 +155,15 @@ function createMatch(name,password,mode){
     "name": name,
     "password": password,
     "access": (password==""),
-    "mode":"survival"
+    "mode":mode
   });
 }
 function joinMatch(id){
   socket.emit("joinMatch",{"id":id});
+}
+function joinPrivateMatch(id){
+  var pw = window.prompt("Please enter the password");
+  socket.emit("joinMatch",{"id":id,"password":pw});
 }
 
 function test(){
@@ -140,4 +178,11 @@ function test(){
   game = new Game();
   game.tick();
   
+}
+function showGameOver(s1,s2){
+  sectionIngame.style.display = "none";
+  sectionEnd.style.display = "block";
+  heading.innerHTML = s1;
+  subheading.innerHTML = s2;
+  game = null;
 }

@@ -18,7 +18,7 @@
       <div id="loggedin" style="display:none">
         <p>
           Enter your name<br>
-          <input id="nameElement" onkeydown="console.log(e.which)"></input>
+          <input id="nameElement" onkeydown="if(event.which == 13) register(nameElement.value);"></input>
           <button onclick="register(nameElement.value)">Ok</button>
         </p>
       </div>
@@ -38,10 +38,16 @@
         <p>Name<br><input id="createName"></input></p>
         <p>Password<br><input id="createPassword"></input><br>
         <small>Leave password empty, if you want the game to be public.</small></p>
-        <p>Gamemode: Survival</p>
+        <p>Gamemode:<br>
+          <select id="createMode">
+            <option value="survival">Survival</option>
+            <!--<option value="race">Race</option>-->
+            <option value="elimination">Eliminiation</option>
+          </select>
+        </p>
         <p>
           <button onclick="closeCreateDialog();">Abort</button>
-          <button onclick="closeCreateDialog();createMatch(createName.value,createPassword.value);">Create game</button>
+          <button onclick="closeCreateDialog();createMatch(createName.value,createPassword.value,createMode.value);">Create game</button>
         </p>
       </div>
     </section>
@@ -56,6 +62,7 @@
       <div id="leaderboard">
         <h3>Leaderboard</h3>
         <ol id="leaderboardElement"></ol>
+        <div id="timer"></div>
       </div>
       <canvas id="myCanvas" width="300" height="540"></canvas>
       <div id="scoreElement"></div>
@@ -67,6 +74,10 @@
         <p id="worstName"></p>
         <canvas id="worstCanvas" width="100" height="180"></canvas>
       </div>
+    </section>
+    <section id="sectionEnd" style="display:none">
+      <h1 id="heading">..</h1>
+      <div id="subheading">..</div>
     </section>
   </body>
   <div id="notice">
