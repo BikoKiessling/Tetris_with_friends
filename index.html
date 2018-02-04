@@ -7,21 +7,22 @@
     <script src="game.js"></script>
   </head>
   <body>
+    <img id="pic1" src="pic1.png"></img>
+    <img id="pic2" src="pic2.png"></img>
+    <img id="pic3" src="pic3.png"></img>
     <section id="sectionStart">
       <h1>Tetris with friends</h1>
-      <img id="pic1" src="pic1.png"></img>
-      <img id="pic2" src="pic2.png"></img>
-      <img id="pic3" src="pic3.png"></img>
       <div id="connecting">
         connecting...
       </div>
       <div id="loggedin" style="display:none">
         <p>
           Enter your name<br>
-          <input id="nameElement"></input>
+          <input id="nameElement" onkeydown="console.log(e.which)"></input>
           <button onclick="register(nameElement.value)">Ok</button>
         </p>
-        <div id="registered" style="display:none">
+      </div>
+      <div id="registered" style="display:none">
         <p>
           Here are some open games:
           <table><tbody id="games">
@@ -31,7 +32,6 @@
           <button onclick="openCreateDialog()">Create a game</button>
         </p>
         </div>
-      </div>
       <div id="dialogOverlay"></div>
       <div id="createDialog">
         <h2>Create game</h2>
@@ -53,11 +53,18 @@
       <button id="readyButton" onclick="onReadyStateChange()">Ready</button>
     </section>
     <section id="sectionIngame" style="display:none">
-      <div id="leaderboard"></div>
+      <div id="leaderboard">
+        <h3>Leaderboard</h3>
+        <ol id="leaderboardElement"></ol>
+      </div>
       <canvas id="myCanvas" width="300" height="540"></canvas>
       <div id="scoreElement"></div>
       <div id="others">
+        <h3>Best</h3>
+        <p id="bestName"></p>
         <canvas id="bestCanvas" width="100" height="180"></canvas>
+        <h3>Worst</h3>
+        <p id="worstName"></p>
         <canvas id="worstCanvas" width="100" height="180"></canvas>
       </div>
     </section>

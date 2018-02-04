@@ -1,20 +1,26 @@
-var socket, name;
+var socket, name = null;
 var ip = "http://192.168.43.87:8080/";
 var status = "start";
 var ready = false;
 
+// let's get going
 window.addEventListener("DOMContentLoaded", e => {
 
+  //establish websocket connection
   socket = io(ip);
+
+  //if connected, show login mask
   socket.on('connect', function(){
-    console.log("connected");
+    console.info("connected");
     loggedin.style.display = "block";
     connecting.style.display = "none";
   });
   
+  //updates on availables games
   socket.on('onMatchListUpdate', function(matchlist){
-    console.log("updatelist",matchlist);
+    if(name == null) return;
     var content = "";
+    console.log("updatelist",matchlist);
     for(var i = 0; i < matchlist.length; i++){
       var match = matchlist[i];
       content += "<tr onclick='joinMatch("+match.id+")'>";
@@ -27,18 +33,22 @@ window.addEventListener("DOMContentLoaded", e => {
     registered.style.display = "block";
   });
 
+  //updates on a match
   socket.on("onMatchUpdate", function(match){
-    console.log("update",match);
+
+    //status change
     if(match.status != window.status){
       var sections = document.querySelectorAll("section");
 
+      //disable all sections
       for(var i = 0; i < sections.length; i++)
         sections[i].style.display = "none";
 
+      //enable single sections
       if(match.status == "lobby"){
         sectionLobby.style.display="block";
-
       }else if(match.status == "ingame"){
+        //start game
         sectionIngame.style.display="block";
         g = myCanvas.getContext("2d")
         b = 30;
@@ -48,6 +58,7 @@ window.addEventListener("DOMContentLoaded", e => {
       window.status = match.status;
     }
 
+    //when in lobby: update player list
     if(match.status == "lobby"){
       content = "";
       for(var i = 0; i < match.players.length; i++){
@@ -57,25 +68,31 @@ window.addEventListener("DOMContentLoaded", e => {
       matchName.innerHTML = "Lobby: "+match.name;
     }
 
+    //when in game: update leaderboard
     if(match.status == "ingame"){
-      console.log("udpate scoardboard",match);
       match.players.sort(function(a,b) {
-        return a.score - b.score;
+        return b.score - a.score;
       });
-      content = "";
-      for(var i = 0; i < match.players; i++){
-        content += "<li>" + (i+1) + ". " + match.players[i].name + " (" + match.players[i].score + ")</li>";
+      var content = "";
+      for(var i = 0; i < match.players.length; i++){
+        content += "<li>" +  match.players[i].name + " (" + match.players[i].score + ")</li>";
       }
-      leaderboard.innerHTML = content;
+      leaderboardElement.innerHTML = content;
     }
   });
   
+  //when playfield received, show them in sections
   socket.on("onPlayFieldUpdate", function(data){
 
-    drawField(document.getElementById(data.position+"Canvas"), data.data);
+    console.log("onPlayFieldUpdate", data);
+    bestName.innerHTML = data[0].name;
+    worstName.innerHTML = data[1].name;
+    drawField("bestCanvas", data[0].playField);
+    drawField("worstCanvas", data[1].playField);
 
   });
 
+  //disconnect
   socket.on('disconnect', function(){
     console.log("disconnect");
   });
@@ -108,7 +125,6 @@ function createMatch(name,password,mode){
   });
 }
 function joinMatch(id){
-  console.log("want to joinMatch",id);
   socket.emit("joinMatch",{"id":id});
 }
 

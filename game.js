@@ -16,6 +16,7 @@ function increaseScore(val) {
 }
 
 function drawField(c, field){
+  c = document.getElementById(c);
   var g = c.getContext("2d");
   var w = parseInt(c.getAttribute("width"));
   var h = parseInt(c.getAttribute("height"));
@@ -81,7 +82,9 @@ function Game() {
           g.globalAlpha = 1;
         g.fillRect(x * b, y * b, b, b);
       }
+    g.globalAlpha = 1;
     this.block.draw(g, b);
+    socket.emit("playFieldUpdate", this.getField());
   }
   this.do = function () {
     var bottom = this.block.y + this.block.tiles.length >= this.h;
@@ -97,7 +100,6 @@ function Game() {
       this.block.y++;
     }
     game.draw();
-    socket.emit("playFieldUpdate", this.getField());
 
   }
   this.removeLines = function () {
@@ -202,6 +204,7 @@ function rotate(a) {
 }
 
 window.addEventListener("keydown", e => {
+  if(!(game)) return;
   if (e.which == 37) {
     game.goLeft();
   } else if (e.which == 39) {
