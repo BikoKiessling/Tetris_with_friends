@@ -22,6 +22,13 @@ function drawField(c, field){
     g.fillRect((i%10)*b,parseInt(i/10)*b, b,b);
   }
 }
+function getNextBlock(){
+  if(blockSeq.length < 4){
+    socket.emit("blockRequest");
+    console.log("BLOCK REQUEST");
+  }
+  return blockSeq.shift();
+}
 
 function Game() {
 
@@ -32,14 +39,17 @@ function Game() {
   this.field = [];
   this.w = 10;
   this.h = 18;
+  this.timeout;
 
   this.tick = function () {
+
+    if(game == null) return;
 
     game.do();
 
     var t = this;
     if (this.running)
-      setTimeout(function () {
+      this.timeout = setTimeout(function () {
         t.tick();
       }, this.time);
   }
@@ -100,6 +110,7 @@ function Game() {
 
   }
   this.removeLines = function () {
+    var winCount = 0;
     for (var y = 0; y < this.h; y++) {
       var freeSpace = false;
       for (var x = 0; x < this.w; x++) {
@@ -110,9 +121,13 @@ function Game() {
         var row = [];
         for (var x = 0; x < this.w; x++) row.push(0);
         this.field.unshift(row);
-        this.increaseScore(40);
+        winCount++;
       }
     }
+    if(winCount == 1) this.increaseScore(40);
+    if(winCount == 2) this.increaseScore(100);
+    if(winCount == 3) this.increaseScore(300);
+    if(winCount == 4) this.increaseScore(1200);
   }
   this.isColliding = function () {
     var collision = false;
@@ -171,7 +186,7 @@ function Block() {
   this.x = 4;
   this.y = -4;
 
-  this.color = 1 + parseInt(Math.random() * blockTypes.length);
+  this.color = getNextBlock();
   this.tiles = blockTypes[this.color - 1];
 
   this.draw = function (g, b) {
@@ -182,6 +197,19 @@ function Block() {
           g.fillRect((this.x + x) * b, (this.y + y) * b, b, b);
       }
   }
+
+  //preview next block
+  var g = previewCanvas.getContext("2d");
+  var size = 7;
+  var prev = blockTypes[blockSeq[0]-1];
+  g.clearRect(0,0, previewCanvas.getAttribute("width"), previewCanvas.getAttribute("height"));
+  g.fillStyle = colors[blockSeq[0]];
+  console.log("block",blockSeq[0]);
+  for(var y = 0; y < prev.length; y++)
+    for(var x = 0; x < prev[y].length; x++){
+      if(prev[y][x])
+        g.fillRect(x*size,y*size,size,size);
+    }
 }
 
 function rotate(a) {

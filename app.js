@@ -42,6 +42,7 @@ io.on('connection', function (socket) {
 
     player.socket.on(constants.JOINMATCH, (matchData) => {
         const match = server.getMatch(matchData.id);
+        if (!match) return;
         switch (match.access) {
             case "public":
                 match.join(player);
@@ -55,32 +56,41 @@ io.on('connection', function (socket) {
     });
 
     player.socket.on(constants.READYSTATECHANGE, (data) => {
-
         const match = server.getMatch(player.matchId);
         if (match.players === 1) return player.socket.emit("onWarning", "You cannot start a game by yourself!");
         player.ready = data.ready;
-        //inform about "ready" state
+
+        //inform all about "ready" state
         match.emitMatchUpdateAll();
         //transition into ingame state
-        match.checkReadyState(player);
+        if (match.checkReadyState(player)) server.emitMatchListUpdate(player, true);
     });
 
     player.socket.on(constants.LEAVEMATCH, () => {
-        if (player.matchId != -1) server.getMatch(player.matchId).leave(player);
+        const match = server.getMatch(player.matchId);
+        if (!match) return;
+        match.leave(player);
+        server.emitMatchListUpdate(player, true);
+
+        if (match.players.length === 0) {
+            server.deleteMatch(match.id);
+            server.emitMatchListUpdate(null, true);
+        }
     });
 
     player.socket.on("scoreUpdate", score => {
         if (player.matchId == -1) return;
         const match = server.getMatch(player.matchId);
         player.score = score.score;
+        if (match.mode === "race") match.checkWinCondition();
         match.emitMatchUpdateAll();
     });
 
     player.socket.on(constants.DISCONNECT, () => {
-        if (player.matchId !== -1){
+        if (player.matchId !== -1) {
             const match = server.getMatch(player.matchId);
             match.leave(player);
-            if(match.players.length === 0) {
+            if (match.players.length === 0) {
                 server.deleteMatch(match.id);
                 server.emitMatchListUpdate(null, true);
             }
@@ -88,18 +98,20 @@ io.on('connection', function (socket) {
         server.leave(player);
 
     });
-    player.socket.on(constants.BLOCKSET, playField => {
-        console.log("block set: " + playField);
+    player.socket.on(constants.BLOCKREQUEST, () => {
+        const match = server.getMatch(player.matchId);
+        if (!match) return;
+        console.log("block set: ");
 
-        server.getMatch(player.matchId).emitNextBlock(playField);
+        server.getMatch(player.matchId).emitBlockSequenceUpdate(player);
     });
 
     player.socket.on(constants.PLAYFIELDUPDATE, playField => {
-        if (player.matchId === -1 ) return;
+        if (player.matchId === -1) return;
         console.log("playfield update: " + playField);
-        player.playField = playField;
-
-        server.getMatch(player.matchId).emitVisiblePlayFields(player);
+        player.playField.field = playField;
+        const match = server.getMatch(player.matchId);
+        if (match) match.emitVisiblePlayFields(player);
     });
 
 })

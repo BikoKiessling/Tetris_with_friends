@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="start.css">
     <script src="socket.io.js"></script>
     <script src="game.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
     <img id="pic1" src="pic1.png"></img>
@@ -41,7 +42,7 @@
         <p>Gamemode:<br>
           <select id="createMode">
             <option value="survival">Survival</option>
-            <!--<option value="race">Race</option>-->
+            <option value="race">Race</option>
             <option value="elimination">Eliminiation</option>
           </select>
         </p>
@@ -56,6 +57,7 @@
       <h2 id="matchName"></h2>
       <ul id="players">
       </ul>
+      <button onclick="leaveLobby()">Leave</button>
       <button id="readyButton" onclick="onReadyStateChange()">Ready</button>
     </section>
     <section id="sectionIngame" style="display:none">
@@ -65,6 +67,7 @@
         <div id="timer"></div>
       </div>
       <canvas id="myCanvas" width="300" height="540"></canvas>
+      <canvas id="previewCanvas" width="40" height="40"></canvas>
       <div id="scoreElement"></div>
       <div id="others">
         <h3>Best</h3>
@@ -78,6 +81,7 @@
     <section id="sectionEnd" style="display:none">
       <h1 id="heading">..</h1>
       <div id="subheading">..</div>
+      <button onclick="toFront()">Go back</button>
     </section>
   </body>
   <div id="notice">

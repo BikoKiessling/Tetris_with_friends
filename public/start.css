@@ -54,9 +54,19 @@ button:hover{
 table{
   border-collapse: collapse;
 }
+table tr{
+  cursor:pointer;
+}
+table tr[data-lobby="false"]{
+  cursor:not-allowed;
+  color:#888;
+  font-style:italic;
+  pointer-events: none;
+}
 table .name{
-  width: 150px;
+  width: 180px;
   font-size:20px;
+  padding: 10px 0;
 }
 table .mode, table .access{
   width: 75px;
@@ -158,6 +168,11 @@ img{
 #sectionIngame,#sectionEnd{
   width:100%;
   height:100%;
+}
+#previewCanvas{
+  position:absolute;
+  top:calc(50% + 280px);
+  left:calc(50% - 150px);
 }
 #myCanvas{
   position:absolute;

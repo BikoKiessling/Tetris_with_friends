@@ -5,4 +5,4 @@ module.exports = class PlayField{
         this.owner=playerId;
         this.currentBlock=1;
     }
-}
+};

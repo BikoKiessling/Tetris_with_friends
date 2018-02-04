@@ -1,6 +1,7 @@
-var socket, name = null, game, registeredBool = false, id, timercount;
+var socket, name = null, game, match;
+var registeredBool = false, id, timercount, blockSeq =[];
 var ip = "http://192.168.43.87:8080/";
-var status = "start",match;
+var status = "start";
 var ready = false;
 
 // let's get going
@@ -24,6 +25,13 @@ window.addEventListener("DOMContentLoaded", e => {
   socket.on('onError', function(str){
     console.error("SERVER",str);
   });
+  //updates on availables games
+  socket.on('onBlockRequest', function(array){
+    console.log("received blocks",array);
+    for(var i = 0; i < array.length; i++){
+      blockSeq.push(array[i]);
+    }
+  });
 
   //updates on availables games
   socket.on('onRegister', function(id){
@@ -37,7 +45,7 @@ window.addEventListener("DOMContentLoaded", e => {
     var content = "";
     for(var i = 0; i < matchlist.length; i++){
       var match = matchlist[i];
-      content += "<tr onclick='join"+(match.access=="private"?"Private":"")+"Match("+match.id+")'>";
+      content += "<tr onclick='join"+(match.access=="private"?"Private":"")+"Match("+match.id+")' data-lobby='"+(match.status=="lobby"?"true":"false")+"'>";
       content += "<td class='name'>"+match.name+"</td>";
       content += "<td class='mode'>"+match.mode+"</td>";
       content += "<td class='access'>"+match.access+"</td>";
@@ -63,6 +71,7 @@ window.addEventListener("DOMContentLoaded", e => {
       //enable single sections
       if(match.status == "lobby"){
         sectionLobby.style.display="block";
+        socket.emit("blockRequest");
       }else if(match.status == "ingame"){
         //start game
         sectionIngame.style.display="block";
@@ -73,6 +82,8 @@ window.addEventListener("DOMContentLoaded", e => {
         if(match.mode == "elimination"){
           timercount = 60;
           setTimeout(function(){eliminationTick();}, 1000);
+        }else if(match.mode == "race"){
+          timer.innerHTML = "reach 2000 points";
         }
       }
       window.status = match.status;
@@ -150,11 +161,23 @@ function closeCreateDialog(){
   createDialog.style.display = "none";
   dialogOverlay.style.display = "none";
 }
+function leaveLobby(){
+  socket.emit("leaveMatch");
+  sectionLobby.style.display = "none";
+  sectionStart.style.display = "block";
+  window.status = "start";
+}
 function createMatch(name,password,mode){
   socket.emit("createMatch",{
     "name": name,
     "password": password,
-    "access": (password==""),
+    "access": (password=="")?"public":"private",
+    "mode":mode
+  });
+  console.log({
+    "name": name,
+    "password": password,
+    "access": (password=="")?"public":"private",
     "mode":mode
   });
 }
@@ -184,5 +207,12 @@ function showGameOver(s1,s2){
   sectionEnd.style.display = "block";
   heading.innerHTML = s1;
   subheading.innerHTML = s2;
+  clearTimeout(game.timeout);
   game = null;
+}
+function toFront(){
+  sectionEnd.style.display = "none";
+  sectionStart.style.display = "block";
+  socket.emit("leaveMatch");
+  window.status = "start";
 }

@@ -21,8 +21,8 @@ module.exports = class Player {
         this.name = player.name;
     }
 
-    setLobby(lobbyId) {
-        this.matchId = lobbyId;
+    setMatch(matchId) {
+        this.matchId = matchId;
     }
 
 };

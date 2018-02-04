@@ -2,6 +2,7 @@
 module.exports = Object.freeze({
     SURVIVAL: "survival",
     ELIMINATION: "elimination",
-    SWITCH: "switch"
+    SWITCH: "switch",
+    RACE: "race"
 });
 
