@@ -1,6 +1,7 @@
 const constants = require("../foundation/Constants");
 const mode = require("../foundation/Mode");
 const status = require("../foundation/Status");
+const ScoreBoard = require("./ScoreBoard");
 module.exports = class Match {
 
     constructor(match) {
@@ -13,7 +14,6 @@ module.exports = class Match {
         this.players = [];
         this.mode = mode.SURVIVAL;
         this.status = status.LOBBY;
-
 
     }
 
@@ -47,16 +47,22 @@ module.exports = class Match {
         return clone;
     }
 
-    emitMatchUpdate(player) {
+    emitMatchUpdateBroadcast(player) {
         const builtUpdatePackage = this.buildUpdatePackage();
         player.socket.broadcast.emit(constants.ONMATCHUPDATE, builtUpdatePackage);
         player.socket.emit(constants.ONMATCHUPDATE, builtUpdatePackage);
     }
 
+    emitMatchUpdateAll(player)
+    {
+        player.socket.emit(constants.ONMATCHUPDATE, this.buildUpdatePackage());
+    }
+
+
     checkReadyState(player) {
         if (this.players.filter(player => player.ready === true).length >= this.players.length / 2) {
             this.status = status.INGAME;
-            this.emitMatchUpdate(player);
+            this.emitMatchUpdateBroadcast(player);
         }
     }
 

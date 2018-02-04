@@ -1,4 +1,4 @@
-var colors = ["#000", "red", "yellow", "blue", "green", "orange", "purple", "lightblue"];
+var colors = ["#ddd", "#AA3939", "#AA6C39", "#226666", "#2D882D", "#AA9E39", "#492E74", "#729C34"];
 var g, b;
 var blockTypes = [
   [[false, true, false], [true, true, true]],
@@ -14,12 +14,6 @@ function increaseScore(val) {
   score += val;
   socket.emit("updateScore", { "score": score });
 }
-window.addEventListener("DOMContentLoaded", function () {
-  g = myCanvas.getContext("2d")
-  b = 20;
-  game = new Game();
-  game.tick();
-});
 
 function drawField(c, field){
   var g = c.getContext("2d");
@@ -45,27 +39,47 @@ function Game() {
 
   this.tick = function () {
 
-    var w = 10;
-    var h = 18;
-
-    g.clearRect(0, 0, w * b, h * b);
     game.do();
+    console.log(this.time);
 
     var t = this;
     if (this.running)
       setTimeout(function () {
         t.tick();
-      }, 800);
+      }, this.time);
   }
   this.increaseScore = function (val) {
     this.score += val;
     scoreElement.innerHTML = "Score: " + this.score;
+    if(val > 1000) this.time = 600;
+    if(val > 2000) this.time = 500;
+    if(val > 3000) this.time = 300;
+    if(val > 4000) this.time = 300;
+    if(val > 5000) this.time = 200;
+    if(val > 6000) this.time = 100;
     //socket.emit("scoreUpdate", {"score": this.score});
   }
+  this.getField = function(){
+    var res = [];
+    for(var y = 0; y < this.h; y++)
+      for(var x = 0; x < this.w; x++){
+        res.push(this.field[y][x]);
+      }
+    for(var y = 0; y < this.block.tiles.length; y++)
+      for(var x = 0; x < this.block.tiles[y].length; x++){
+        res[y*this.block.tiles[y].length+x] = this.block.color;
+      }
+    return res;
+  }
   this.draw = function () {
+    g.clearRect(0, 0, this.w * b, this.h * b);
     for (var x = 0; x < this.w; x++)
       for (var y = 0; y < this.h; y++) {
         g.fillStyle = colors[this.field[y][x]];
+        if(this.field[y][x] == 0 && (x+y)%2 == 0)
+          g.globalAlpha = 0.8;
+        else
+          g.globalAlpha = 1;
         g.fillRect(x * b, y * b, b, b);
       }
     this.block.draw(g, b);
@@ -84,6 +98,7 @@ function Game() {
       this.block.y++;
     }
     game.draw();
+    socket.emit("playFieldUpdate", this.getField());
 
   }
   this.removeLines = function () {
