@@ -12,6 +12,7 @@ module.exports = class Player {
         this.ip = socket.handshake.address;
         this.currentLobby = -1;
         this.ready = false;
+        this.score=0;
         this.playField = new PlayField(this.id);
     }
 

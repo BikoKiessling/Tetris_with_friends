@@ -5,14 +5,13 @@ module.exports = class ScoreBoard {
 
     }
 
-    updateScore(playerId, score) {
-        this.scores.set(playerId, score);
-        this.emitScoreBoard();
+    updateScore(player, score) {
+        this.scores.set(player.id, score);
+        this.emitScoreUpdate(player);
     }
 
-    emitScoreBoard(player) {
-        player.socket.broadcast.emit(constants.ONBLOCKSET,this.scores);
+    emitScoreUpdate(player) {
+        player.socket.broadcast.emit(constants.ONSCOREUPDATE,this.scores);
     }
-
 
 }

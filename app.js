@@ -50,14 +50,14 @@ io.on('connection', function (socket) {
                 break;
 
         }
-        match.emitMatchUpdate(player);
+        match.emitMatchUpdateBroadcast(player);
     });
 
     player.socket.on(constants.READYSTATECHANGE, (data) => {
         player.ready = data.ready;
         const match = server.getMatch(player.currentLobby);
         //inform about "ready" state
-        match.emitMatchUpdate(player);
+        match.emitMatchUpdateBroadcast(player);
         //transition into ingame state
         match.checkReadyState(player);
     });
@@ -67,9 +67,8 @@ io.on('connection', function (socket) {
     });
 
     player.socket.on(constants.SCOREUPDATE, score => {
-        const scoreBoard = server.getMatch(player.currentLobby).getScoreBoard();
-        scoreBoard.updateScore(score);
-        scoreBoard.emitScoreBoard(player.socket.broadcast);
+        player.score=score;
+        server.getMatch(player.currentLobby).emitMatchUpdateAll(player);
     });
 
     player.socket.on(constants.DISCONNECT, () => {
@@ -79,12 +78,12 @@ io.on('connection', function (socket) {
         server.getMatch(player.currentLobby).emitNextBlock(playField);
     });
 
-    player.socket.on(constants.ONPLAYFIELDUPDATE, playField => {
-        [1, 2, 3, 4].includes(server.getMatch(player.currentLobby).getScoreboard().getRanking(player.id));
-
-    });
-    socket.socket.emit("onPlayFieldUpdate",
-        server.getMatch(this.player.currentLobby).getVisiblePlayFields(this.player.id));
+    // player.socket.on(constants.ONPLAYFIELDUPDATE, playField => {
+    //     [1, 2, 3, 4].includes(server.getMatch(player.currentLobby).getScoreboard().getRanking(player.id));
+    //
+    // });
+    // socket.socket.emit("onPlayFieldUpdate",
+    //     server.getMatch(this.player.currentLobby).getVisiblePlayFields(this.player.id));
 
 
 })

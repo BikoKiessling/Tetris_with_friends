@@ -121,6 +121,7 @@ img{
 #sectionIngame{
   width:100%;
   height:100%;
+  background:#ddd;
 }
 #myCanvas{
   position:absolute;

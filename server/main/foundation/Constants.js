@@ -4,7 +4,7 @@ module.exports = Object.freeze({
     ONMATCHUPDATE: "onMatchUpdate",
     ONSCOREUPDATE: "onScoreUpdate",
     ONBLOCKSET: "onBlockSet",
-    ONPLAYFIELDUPDATE: "onPlayFieldUpdate"
+    ONPLAYFIELDUPDATE: "onPlayFieldUpdate",
     //Client Events
     BLOCKSET: "blockSet",
     LEAVEMATCH: "leaveMatch",
