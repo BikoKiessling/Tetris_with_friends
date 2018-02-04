@@ -40,7 +40,6 @@ function Game() {
   this.tick = function () {
 
     game.do();
-    console.log(this.time);
 
     var t = this;
     if (this.running)
@@ -57,7 +56,7 @@ function Game() {
     if(val > 4000) this.time = 300;
     if(val > 5000) this.time = 200;
     if(val > 6000) this.time = 100;
-    //socket.emit("scoreUpdate", {"score": this.score});
+    socket.emit("scoreUpdate", {"score": this.score});
   }
   this.getField = function(){
     var res = [];

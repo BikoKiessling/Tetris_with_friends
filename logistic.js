@@ -6,7 +6,6 @@ var ready = false;
 window.addEventListener("DOMContentLoaded", e => {
 
   socket = io(ip);
-  test();
   socket.on('connect', function(){
     console.log("connected");
     loggedin.style.display = "block";
@@ -46,6 +45,7 @@ window.addEventListener("DOMContentLoaded", e => {
         game = new Game();
         game.tick();
       }
+      window.status = match.status;
     }
 
     if(match.status == "lobby"){
@@ -58,6 +58,7 @@ window.addEventListener("DOMContentLoaded", e => {
     }
 
     if(match.status == "ingame"){
+      console.log("udpate scoardboard",match);
       match.players.sort(function(a,b) {
         return a.score - b.score;
       });
