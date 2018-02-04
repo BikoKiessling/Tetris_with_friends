@@ -15,7 +15,6 @@ http.listen(8080, function () {
     console.log('listening on *:' + 8080);
 });
 
-app.use(express.static("public"));
 io.on('connection', function (socket) {
 
     //configure player
@@ -51,7 +50,7 @@ io.on('connection', function (socket) {
                 break;
 
         }
-        match.emitMatchUpdateAll();
+        match.emitMatchUpdateBroadcast(player);
     });
 
     player.socket.on(constants.READYSTATECHANGE, (data) => {
@@ -60,45 +59,34 @@ io.on('connection', function (socket) {
         if (match.players === 1) return player.socket.emit("onWarning", "You cannot start a game by yourself!");
         player.ready = data.ready;
         //inform about "ready" state
-        match.emitMatchUpdateAll();
+        match.emitMatchUpdateAll(player);
         //transition into ingame state
         match.checkReadyState(player);
     });
 
-    player.socket.on(constants.LEAVEMATCH, () => {
-        if (player.matchId != -1) server.getMatch(player.matchId).leave(player);
+    player.socket.on(constants.LEAVEMATCH, ()=> {
+        server.getMatch(player.matchId).leave(player);
     });
 
-    player.socket.on("scoreUpdate", score => {
-        if (player.matchId == -1) return;
+    player.socket.on(constants.SCOREUPDATE, score => {
         const match = server.getMatch(player.matchId);
         player.score = score.score;
-        match.emitMatchUpdateAll();
+        server.getMatch(player.matchId).emitMatchUpdateAll(player);
     });
 
     player.socket.on(constants.DISCONNECT, () => {
-        if (player.matchId !== -1){
-            const match = server.getMatch(player.matchId);
-            match.leave(player);
-            if(match.players.length === 0) {
-                server.deleteMatch(match.id);
-                server.emitMatchListUpdate(null, true);
-            }
-        }
+        if (player.matchId !== -1) server.getMatch(player.matchId).leave(player);
         server.leave(player);
 
     });
     player.socket.on(constants.BLOCKSET, playField => {
         console.log("block set: " + playField);
-
         server.getMatch(player.matchId).emitNextBlock(playField);
     });
 
     player.socket.on(constants.PLAYFIELDUPDATE, playField => {
-        if (player.matchId === -1 ) return;
         console.log("playfield update: " + playField);
         player.playField = playField;
-
         server.getMatch(player.matchId).emitVisiblePlayFields(player);
     });
 

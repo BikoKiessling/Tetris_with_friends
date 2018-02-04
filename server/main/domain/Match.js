@@ -6,18 +6,16 @@ module.exports = class Match {
 
     constructor(match) {
 
-        this.players = [];
-        this.mode = mode.SURVIVAL;
-        this.status = status.LOBBY;
-        this.timeout = 60;
         match && Object.assign(this, match);
         this.playerMaximum = 8;
         this.players = [];
         this.access = "public";
         this.blockSequence = Array.from({length: 4096}, () => Math.floor(Math.random() * 7 + 1));
-
+        this.players = [];
+        this.mode = mode.SURVIVAL;
+        this.status = status.LOBBY;
+        this.timeout = 20;
         this.scoreboard = new ScoreBoard();
-
 
     }
 
@@ -36,7 +34,7 @@ module.exports = class Match {
         player.matchId = -1;
         this.players.forEach(player1 => {
             player1.socket.emit(constants.ONMATCHUPDATE, this.buildUpdatePackage());
-        });
+        })
     }
 
     buildUpdatePackage() {
@@ -53,34 +51,33 @@ module.exports = class Match {
         return clone;
     }
 
-    emitMatchUpdateAll(options) {
-        let builtUpdatePackage = this.buildUpdatePackage();
-        if(options && options.without){
-            builtUpdatePackage.players = builtUpdatePackage.players.filter(p => p.id !== options.without.id);
-        }
-        this.players.forEach((player) => {
-            player.socket.emit(constants.ONMATCHUPDATE, builtUpdatePackage);
-        });
+    emitMatchUpdateBroadcast(player) {
+        const builtUpdatePackage = this.buildUpdatePackage();
+        player.socket.broadcast.emit(constants.ONMATCHUPDATE, builtUpdatePackage);
+    }
+
+    emitMatchUpdateAll(player) {
+        const builtUpdatePackage = this.buildUpdatePackage();
+        player.socket.broadcast.emit(constants.ONMATCHUPDATE, builtUpdatePackage);
+        player.socket.emit(constants.ONMATCHUPDATE, builtUpdatePackage);
     }
 
 
     checkReadyState(player) {
         if (this.players.filter(player => player.ready === true).length >= this.players.length / 2) {
             this.status = status.INGAME;
-            this.emitMatchUpdateAll();
+            this.emitMatchUpdateAll(player);
+
             switch (this.mode) {
                 case mode.SURVIVAL:
-                    break;
+
                 case mode.ELIMINATION:
-                    setInterval((a) => {
+                    setInterval(this.timeOut * 1000, () => {
                         //last place gets removed from game
-                        const worstPlayer = a.match.players.sort((a, b) => a.score - b.score)[0];
-                        a.match.emitMatchUpdateAll({"without": worstPlayer});
-                        a.match.leave(worstPlayer);
-                    }, this.timeout * 1000, {"match":this,"player":player});
-                    break;
+                        this.leave(this.players.sort((a, b) => a.score - b.score)[0]);
+                        this.emitMatchUpdateAll(player);
+                    });
                 case mode.SWITCH:
-                    break;
             }
         }
     }
@@ -105,28 +102,12 @@ module.exports = class Match {
         this.players.map(player => player.playfield);
     }
 
-
     emitPlayFieldUpdate(player, playFields) {
         player.socket.broadcast.emit(constants.ONPLAYFIELDUPDATE, playFields)
     }
 
-    getVisiblePlayFields(player) {
-        const players = this.players.filter(player1 => player1.id === player.id);
-        players.sort((a, b) => b.score - a.score);
-        this.emitPlayFieldUpdate(player, [{
-            name: players[0].name,
-            playField: players[0].playField
-        },
-            {
-                name: players[players.length - 1].name,
-                playField: players[players.length - 1].playField
-            }]);
-    }
-
-
     emitVisiblePlayFields(player) {
-        const players = this.players.filter(player1 => player1.id !== player.id );
-        if (players.length === 0) return;
+        const players = this.players.filter(player1 => player1.id !== player.id);
         players.sort((a, b) => b.score - a.score);
         player.socket.emit("onLog", "my name: " + player.name + "best: " + players[0].name + "worst: " + players[players.length - 1].name);
         player.socket.emit(constants.ONPLAYFIELDUPDATE, [{
@@ -137,7 +118,6 @@ module.exports = class Match {
                 name: players[players.length - 1].name,
                 playField: players[players.length - 1].playField
             }]);
-
     }
 
 
