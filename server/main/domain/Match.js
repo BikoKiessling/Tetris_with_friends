@@ -14,6 +14,7 @@ module.exports = class Match {
         this.players = [];
         this.mode = mode.SURVIVAL;
         this.status = status.LOBBY;
+        this.scoreboard = new ScoreBoard();
 
     }
 
@@ -37,6 +38,7 @@ module.exports = class Match {
     buildUpdatePackage() {
         //emit player without socket
         const clone = Object.assign({}, this);
+        delete clone.blockSequence;
         clone.players = clone.players.map(player => ({
             id: player.id,
             score: player.score,
@@ -50,19 +52,19 @@ module.exports = class Match {
     emitMatchUpdateBroadcast(player) {
         const builtUpdatePackage = this.buildUpdatePackage();
         player.socket.broadcast.emit(constants.ONMATCHUPDATE, builtUpdatePackage);
-        player.socket.emit(constants.ONMATCHUPDATE, builtUpdatePackage);
     }
 
-    emitMatchUpdateAll(player)
-    {
-        player.socket.emit(constants.ONMATCHUPDATE, this.buildUpdatePackage());
+    emitMatchUpdateAll(player) {
+        const builtUpdatePackage = this.buildUpdatePackage();
+        player.socket.broadcast.emit(constants.ONMATCHUPDATE, builtUpdatePackage);
+        player.socket.emit(constants.ONMATCHUPDATE, builtUpdatePackage);
     }
 
 
     checkReadyState(player) {
         if (this.players.filter(player => player.ready === true).length >= this.players.length / 2) {
             this.status = status.INGAME;
-            this.emitMatchUpdateBroadcast(player);
+            this.emitMatchUpdateAll(player);
         }
     }
 
@@ -86,21 +88,24 @@ module.exports = class Match {
         this.players.map(player => player.playfield);
     }
 
-    getVisiblePlayFields(playerId) {
-        const playFields = this.getPlayFields();
-        if (playFields <= 3) return playFields;
+    emitPlayFieldUpdate(player,playFields)
+    {
+        player.socket.broadcast.emit(constants.ONPLAYFIELDUPDATE,playFields)
+    }
 
-        switch (playerId) {
-            //user in first place
-            case playFields[0].owner:
-                return [playFields[1], playFields[playFields.length - 1]];
-            //user in last place
-            case playFields[playFields.length - 1].owner:
-                return [playFields[0], playFields[playFields.length - 2]];
-            default:
-                return [playFields[0], playFields[playFields.length - 1]];
+    getVisiblePlayFields(player) {
+        const players = this.players.filter(player1 => player1.id === player.id);
+        players.sort((a, b) => b.score - a.score);
+        this.emitPlayFieldUpdate(player, [{
+            name: players[0].name,
+            playField: players[0].playField
+        },
+            {
+                name: players[players.length - 1].name,
+                playField: players[players.length - 1].playField
+            }]);
 
-        }
+
     }
 
 

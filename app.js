@@ -67,7 +67,8 @@ io.on('connection', function (socket) {
     });
 
     player.socket.on(constants.SCOREUPDATE, score => {
-        player.score=score;
+        const match = server.getMatch(player.currentLobby);
+        player.score = score.score;
         server.getMatch(player.currentLobby).emitMatchUpdateAll(player);
     });
 
@@ -75,15 +76,17 @@ io.on('connection', function (socket) {
         if (player.currentLobby !== -1) server.getMatch(player.currentLobby).leave(player);
     });
     player.socket.on(constants.BLOCKSET, playField => {
+        console.log("block set: " + playField);
         server.getMatch(player.currentLobby).emitNextBlock(playField);
     });
 
-    // player.socket.on(constants.ONPLAYFIELDUPDATE, playField => {
-    //     [1, 2, 3, 4].includes(server.getMatch(player.currentLobby).getScoreboard().getRanking(player.id));
-    //
-    // });
-    // socket.socket.emit("onPlayFieldUpdate",
-    //     server.getMatch(this.player.currentLobby).getVisiblePlayFields(this.player.id));
+    player.socket.on(constants.PLAYFIELDUPDATE, playField => {
+        console.log("playfield update: " + playField);
+        player.playField = playField;
+        server.getMatch(player.currentLobby).getVisiblePlayFields(player);
+
+
+    });
 
 
 })

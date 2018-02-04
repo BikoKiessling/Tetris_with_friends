@@ -49,7 +49,6 @@ module.exports = class Server {
 
     }
 
-
     leave(player) {
         if (player.currentLobby === -1) player.emit("onWarning", "You are in no lobby!");
         player.currentLobby = -1;
