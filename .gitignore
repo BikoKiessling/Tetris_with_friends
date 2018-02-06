@@ -170,3 +170,9 @@ typings/
 
 
 # End of https://www.gitignore.io/api/node,intellij+all,intellij+iml,visualstudiocode
+
+### Node JS ###
+
+node_modules
+node_modules/
+node_modules/*
