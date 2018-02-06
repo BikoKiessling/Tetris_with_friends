@@ -1,0 +1,16 @@
+{
+  "name": "tetris_with_friends",
+  "description": "Web-based multiplayer tetris",
+  "version": "1.0.0",
+  "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BikoKiessling/tetris_with_friends"
+  },
+  "author": "Biko Kiessling and Manuel Wolkowitsch",
+  "dependencies": {
+    "express": "^4.16.2",
+    "socket.io": "^2.0.4"
+  },
+  "license": "Open Source"
+}
