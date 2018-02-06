@@ -1,6 +1,6 @@
 var socket, name = null, game, match;
 var registeredBool = false, id, timercount, blockSeq =[];
-var ip = "http://192.168.43.87:8080/";
+var ip = ":8080/";
 var status = "start";
 var ready = false;
 
