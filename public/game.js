@@ -25,7 +25,6 @@ function drawField(c, field){
 function getNextBlock(){
   if(blockSeq.length < 4){
     socket.emit("blockRequest");
-    console.log("BLOCK REQUEST");
   }
   return blockSeq.shift();
 }
@@ -63,7 +62,6 @@ function Game() {
     if(val > 5000) this.time = 200;
     if(val > 6000) this.time = 100;
     socket.emit("scoreUpdate", {"score": this.score});
-    console.log("scoreUpdate", {"score": this.score});
   }
   this.getField = function(){
     var res = [];
@@ -204,7 +202,7 @@ function Block() {
   var prev = blockTypes[blockSeq[0]-1];
   g.clearRect(0,0, previewCanvas.getAttribute("width"), previewCanvas.getAttribute("height"));
   g.fillStyle = colors[blockSeq[0]];
-  console.log("block",blockSeq[0]);
+  
   for(var y = 0; y < prev.length; y++)
     for(var x = 0; x < prev[y].length; x++){
       if(prev[y][x])

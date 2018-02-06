@@ -12,22 +12,21 @@ window.addEventListener("DOMContentLoaded", e => {
 
   //if connected, show login mask
   socket.on('connect', function(){
-    console.info("connected");
+    console.info("Connection etablished.");
     loggedin.style.display = "block";
     connecting.style.display = "none";
   });
 
   //updates on availables games
   socket.on('onLog', function(str){
-    console.log("SERVER",str);
+    console.log("Server Log",str);
   });
   //updates on availables games
   socket.on('onError', function(str){
-    console.error("SERVER",str);
+    console.error("Server Error",str);
   });
   //updates on availables games
   socket.on('onBlockRequest', function(array){
-    console.log("received blocks",array);
     for(var i = 0; i < array.length; i++){
       blockSeq.push(array[i]);
     }
@@ -41,7 +40,6 @@ window.addEventListener("DOMContentLoaded", e => {
   //updates on availables games
   socket.on('onMatchListUpdate', function(matchlist){
     if(!registeredBool) return;
-    console.log("updatelist",matchlist);
     var content = "";
     for(var i = 0; i < matchlist.length; i++){
       var match = matchlist[i];
@@ -138,7 +136,7 @@ window.addEventListener("DOMContentLoaded", e => {
 
   //disconnect
   socket.on('disconnect', function(){
-    console.log("disconnect");
+    console.log("Disconnect.");
   });
 });
 
@@ -169,12 +167,6 @@ function leaveLobby(){
 }
 function createMatch(name,password,mode){
   socket.emit("createMatch",{
-    "name": name,
-    "password": password,
-    "access": (password=="")?"public":"private",
-    "mode":mode
-  });
-  console.log({
     "name": name,
     "password": password,
     "access": (password=="")?"public":"private",

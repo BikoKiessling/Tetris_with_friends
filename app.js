@@ -10,9 +10,10 @@ const Player = require("./server/main/domain/Player");
 
 //init server
 const server = new Server();
+const port = 8080;
 
-http.listen(8080, function () {
-    console.log('listening on *:' + 8080);
+http.listen(port, function () {
+    console.log('Server started on port ' + port + ".");
 });
 
 app.use(express.static("public"));
@@ -21,18 +22,16 @@ io.on('connection', function (socket) {
     //configure player
     const player = new Player(socket);
 
-    console.log("player connected " + player.id);
-
     //game management handlers
     player.socket.on(constants.REGISTER, playerData => {
-        console.log("register: ", playerData);
+        console.log("Player registered (", playerData.name + ").");
         player.assignFields(playerData);
         server.registerPlayer(player);
     });
 
 
     player.socket.on(constants.CREATEMATCH, (matchData) => {
-        console.log("create match: " + matchData);
+        console.log("Match registered (" + matchData.name + ")");
         server.createMatch(new Match(matchData), player);
 
         //update list of other players
@@ -101,17 +100,16 @@ io.on('connection', function (socket) {
     player.socket.on(constants.BLOCKREQUEST, () => {
         const match = server.getMatch(player.matchId);
         if (!match) return;
-        console.log("block set: ");
 
         server.getMatch(player.matchId).emitBlockSequenceUpdate(player);
     });
 
     player.socket.on(constants.PLAYFIELDUPDATE, playField => {
-        if (player.matchId === -1) return;
-        console.log("playfield update: " + playField);
-        player.playField.field = playField;
         const match = server.getMatch(player.matchId);
-        if (match) match.emitVisiblePlayFields(player);
+        if (match){
+          player.playField.field = playField;
+          match.emitVisiblePlayFields(player);
+        }
     });
 
 })
