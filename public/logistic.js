@@ -1,8 +1,11 @@
-var socket, name = null, game, match;
-var registeredBool = false, id, timercount, blockSeq =[];
-var ip = ":8080/";
+var socket, connection = {}, game, match = {};
+var ip = (localStorage.getItem("ip")) || ":8080/";
 var status = "start";
 var ready = false;
+
+function setUI(str) {
+  document.body.className = str;
+}
 
 // let's get going
 window.addEventListener("DOMContentLoaded", e => {
@@ -11,122 +14,126 @@ window.addEventListener("DOMContentLoaded", e => {
   socket = io(ip);
 
   //if connected, show login mask
-  socket.on('connect', function(){
+  socket.on('connect', function () {
     console.info("Connection etablished.");
-    loggedin.style.display = "block";
-    connecting.style.display = "none";
+    setUI(UI.START);
   });
 
   //updates on availables games
-  socket.on('onLog', function(str){
-    console.log("Server Log",str);
+  socket.on('onLog', function (str) {
+    console.log("Server Log", str);
   });
   //updates on availables games
-  socket.on('onError', function(str){
-    console.error("Server Error",str);
+  socket.on('onError', function (str) {
+    console.error("Server Error", str);
   });
   //updates on availables games
-  socket.on('onBlockRequest', function(array){
-    for(var i = 0; i < array.length; i++){
-      blockSeq.push(array[i]);
-    }
+  socket.on('onBlockRequest', function (array) {
+    array.forEach(element => {
+      game.blockSequence.push(element);
+    });
   });
 
   //updates on availables games
-  socket.on('onRegister', function(id){
-    window.id = id;
+  socket.on('onRegister', function (id) {
+    connection.id = id;
+    connection.registered = true;
+    setUI(UI.GAMES);
   });
-  
+
   //updates on availables games
-  socket.on('onMatchListUpdate', function(matchlist){
-    if(!registeredBool) return;
+  socket.on('onMatchListUpdate', function (matchlist) {
+    //TODO 
+    // SERVER BUG
+    // first onRegister, second onMatchListUpdate
+    //if(connection.registered) return;
+    console.log("matchlist", matchlist);
+
     var content = "";
-    for(var i = 0; i < matchlist.length; i++){
+    for (var i = 0; i < matchlist.length; i++) {
       var match = matchlist[i];
-      content += "<tr onclick='join"+(match.access=="private"?"Private":"")+"Match("+match.id+")' data-lobby='"+(match.status=="lobby"?"true":"false")+"'>";
-      content += "<td class='name'>"+match.name+"</td>";
-      content += "<td class='mode'>"+match.mode+"</td>";
-      content += "<td class='access'>"+match.access+"</td>";
+      content += "<tr onclick='join" + (match.access == "private" ? "Private" : "") + "Match(" + match.id + ")' data-lobby='" + (match.status == "lobby" ? "true" : "false") + "'>";
+      content += "<td class='name'>" + match.name + "</td>";
+      content += "<td class='mode'>" + match.mode + "</td>";
+      content += "<td class='access'>" + match.access + "</td>";
       content += "</tr>";
     }
-    games.innerHTML = content;
-    registered.style.display = "block";
+    gameList.innerHTML = content;
   });
 
   //updates on a match
-  socket.on("onMatchUpdate", function(match){
+  socket.on("onMatchUpdate", function (match) {
 
     //status change
-    console.log("update",match);
-    window.match = match;
-    if(match.status != window.status){
-      var sections = document.querySelectorAll("section");
-
-      //disable all sections
-      for(var i = 0; i < sections.length; i++)
-        sections[i].style.display = "none";
+    console.log("update", match,window.match);
+    if (match.status != window.match.status) {
 
       //enable single sections
-      if(match.status == "lobby"){
-        sectionLobby.style.display="block";
+      if (match.status == "lobby") {
+        setUI(UI.LOBBY);
+        ready = true;
+        onReadyStateChange();
+        game = new Game();
         socket.emit("blockRequest");
-      }else if(match.status == "ingame"){
+      } else if (match.status == "ingame") {
         //start game
-        sectionIngame.style.display="block";
+        setUI(UI.INGAME);
         g = myCanvas.getContext("2d")
         b = 30;
-        game = new Game();
-        game.tick();
-        if(match.mode == "elimination"){
-          timercount = 60;
-          setTimeout(function(){eliminationTick();}, 1000);
-        }else if(match.mode == "race"){
-          timer.innerHTML = "reach 2000 points";
+        game.mode = { type: match.mode };
+        if (game.mode === GAMEMODE.ELIMINIATION) {
+          game.mode.timer = 60;
+          game.mode.time = 60;
+          game.mode.tick = setInterval(function () { eliminationTick(); }, 1000);
+          gameinfo.innerHTML = "Survive every minute!";
+        } else if (game.mode === GAMEMODE.RACE) {
+          gameinfo.innerHTML = "Reach 2000 points";
         }
+        game.start();
       }
-      window.status = match.status;
+      window.match = match;
     }
 
     //when in lobby: update player list
-    if(match.status == "lobby"){
+    if (match.status == "lobby") {
       content = "";
-      for(var i = 0; i < match.players.length; i++){
-        content += "<li data-ready='"+ (match.players[i].ready?"true":"false") +"'>" + match.players[i].name + "</li>";
+      for (var i = 0; i < match.players.length; i++) {
+        content += "<li data-ready='" + (match.players[i].ready ? "true" : "false") + "'>" + match.players[i].name + "</li>";
       }
       players.innerHTML = content;
-      matchName.innerHTML = "Lobby: "+match.name;
+      matchName.innerHTML = match.name;
     }
 
     //when in game: update leaderboard
-    if(match.status == "ingame"){
-      match.players.sort(function(a,b) {
+    if (match.status == "ingame") {
+      match.players.sort(function (a, b) {
         return b.score - a.score;
       });
       var content = "";
-      for(var i = 0; i < match.players.length; i++){
-        content += "<li>" +  match.players[i].name + " (" + match.players[i].score + ")</li>";
+      for (var i = 0; i < match.players.length; i++) {
+        content += "<li>" + match.players[i].name + " (" + match.players[i].score + ")</li>";
       }
       leaderboardElement.innerHTML = content;
 
       //game over check
       var gameOver = true;
-      for(var i = 0; i < match.players.length; i++)
-        if(match.players[i].id == id)
+      for (var i = 0; i < match.players.length; i++)
+        if (match.players[i].id == connection.id)
           gameOver = false;
-      if(gameOver){
-        showGameOver((match.players.length+1)+".","You lost..");
+      if (gameOver) {
+        showGameOver((match.players.length + 1) + ".", "You lost..");
       }
 
       //win check
-      if(match.players.length <= 1 && !gameOver){
-        showGameOver("Good job","You won!");
+      if (match.players.length <= 1 && !gameOver) {
+        showGameOver("Good job", "You won!");
       }
     }
+    window.match = match;
   });
-  
-  //when playfield received, show them in sections
-  socket.on("onPlayFieldUpdate", function(data){
 
+  //when playfield received, show them in sections
+  socket.on("onPlayFieldUpdate", function (data) {
     bestName.innerHTML = data[0].name;
     worstName.innerHTML = data[1].name;
     drawField("bestCanvas", data[0].playField);
@@ -135,76 +142,57 @@ window.addEventListener("DOMContentLoaded", e => {
   });
 
   //disconnect
-  socket.on('disconnect', function(){
+  socket.on('disconnect', function () {
     console.log("Disconnect.");
+    setUI(UI.DISCONNECTED);
   });
 });
 
-function onReadyStateChange(){
+function onReadyStateChange() {
   ready = !ready;
-  readyButton.innerHTML = (ready?"not ready":"ready");
-  socket.emit("readyStateChange", {"ready":ready});
+  readyButton.innerHTML = (ready ? "not ready" : "ready");
+  socket.emit("readyStateChange", { "ready": ready });
 }
-function register(name){
-  window.name = name;
-  registeredBool = true;
-  loggedin.style.display = "none";
-  socket.emit("register", {"name":name});
+function register(name) {
+  connection.name = name;
+  connection.registered = true;
+  setUI(UI.GAMES);
+  socket.emit("register", { "name": name });
 }
-function openCreateDialog(){
-  createDialog.style.display = "block";
-  dialogOverlay.style.display = "block";
+function openCreateDialog() {
+  setUI(UI.CREATED);
 }
-function closeCreateDialog(){
-  createDialog.style.display = "none";
-  dialogOverlay.style.display = "none";
+function closeCreateDialog() {
+  setUI(UI.GAMES);
 }
-function leaveLobby(){
+function leaveMatch() {
+  setUI(UI.GAMES);
   socket.emit("leaveMatch");
-  sectionLobby.style.display = "none";
-  sectionStart.style.display = "block";
-  window.status = "start";
+  ready = false;
+  match = null;
+  readyButton.innerHTML = "ready";
+  players.innerHTML = "";
 }
-function createMatch(name,password,mode){
-  socket.emit("createMatch",{
+function createMatch(name, password, mode) {
+  socket.emit("createMatch", {
     "name": name,
     "password": password,
-    "access": (password=="")?"public":"private",
-    "mode":mode
+    "access": (password == "") ? "public" : "private",
+    "mode": mode
   });
 }
-function joinMatch(id){
-  socket.emit("joinMatch",{"id":id});
+function joinMatch(id) {
+  socket.emit("joinMatch", { "id": id });
 }
-function joinPrivateMatch(id){
+function joinPrivateMatch(id) {
   var pw = window.prompt("Please enter the password");
-  socket.emit("joinMatch",{"id":id,"password":pw});
+  socket.emit("joinMatch", { "id": id, "password": pw });
 }
 
-function test(){
-  
-  var sections = document.querySelectorAll("section");
-
-  for(var i = 0; i < sections.length; i++)
-    sections[i].style.display = "none";
-  sectionIngame.style.display="block";
-  g = myCanvas.getContext("2d")
-  b = 30;
-  game = new Game();
-  game.tick();
-  
-}
-function showGameOver(s1,s2){
-  sectionIngame.style.display = "none";
-  sectionEnd.style.display = "block";
+function showGameOver(s1, s2) {
+  leaveMatch();
+  setUI(UI.END);
   heading.innerHTML = s1;
   subheading.innerHTML = s2;
-  clearTimeout(game.timeout);
-  game = null;
-}
-function toFront(){
-  sectionEnd.style.display = "none";
-  sectionStart.style.display = "block";
-  socket.emit("leaveMatch");
-  window.status = "start";
+  game.kill();
 }

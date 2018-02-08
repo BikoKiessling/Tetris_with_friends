@@ -22,37 +22,70 @@ function drawField(c, field){
     g.fillRect((i%10)*b,parseInt(i/10)*b, b,b);
   }
 }
-function getNextBlock(){
-  if(blockSeq.length < 4){
-    socket.emit("blockRequest");
+
+class Game {
+
+  constructor(){
+    this.time = 800;
+    this.score = 0;
+    this.running = false;
+    this.field = [];
+    this.w = 10;
+    this.h = 18;
+    this.timeout;
+    this.blockSequence = [];
+    this.mode = {};
+    this.block = null;
+
+    var row = [];
+    for (var i = 0; i < 10; i++) row.push(0);
+    for (var i = 0; i < 18; i++) this.field.push(JSON.parse(JSON.stringify(row)));
   }
-  return blockSeq.shift();
-}
 
-function Game() {
+  start(){
+    this.running = true;
+    this.block = new Block(this);
+    this.tick();
+  }
 
-  this.time = 800;
-  this.score = 0;
-  this.running = true;
-  this.block = new Block();
-  this.field = [];
-  this.w = 10;
-  this.h = 18;
-  this.timeout;
+  getNextBlock(){
+    if(this.blockSequence.length < 4){
+      socket.emit("blockRequest");
+    }
+    if(this.blockSequence.length == 0){
+      console.error("No next block exists!");
+      return 0;
+    }
+    return this.blockSequence.shift();
+  }
+  previewNextBlock(){
+    if(this.blockSequence.length == 0){
+      console.error("No next preview block exists!");
+      return 0;
+    }
+    return this.blockSequence[0];
+  }
 
-  this.tick = function () {
-
-    if(game == null) return;
+  tick() {
 
     game.do();
 
     var t = this;
-    if (this.running)
-      this.timeout = setTimeout(function () {
-        t.tick();
-      }, this.time);
+    this.timeout = setTimeout(function () {
+      t.tick();
+    }, this.time);
   }
-  this.increaseScore = function (val) {
+  
+  kill(){
+    this.running = false;
+    clearTimeout(this.timeout);
+
+    if(this.mode == GAMEMODE.ELIMINIATION){
+      clearInterval(this.mode.tick);
+    }
+  }
+
+  increaseScore(val) {
     this.score += val;
     scoreElement.innerHTML = "Score: " + this.score;
     if(val > 1000) this.time = 600;
@@ -63,7 +96,7 @@ function Game() {
     if(val > 6000) this.time = 100;
     socket.emit("scoreUpdate", {"score": this.score});
   }
-  this.getField = function(){
+  getField(){
     var res = [];
     for(var y = 0; y < this.h; y++)
       for(var x = 0; x < this.w; x++){
@@ -76,7 +109,7 @@ function Game() {
       }
     return res;
   }
-  this.draw = function () {
+  draw() {
     g.clearRect(0, 0, this.w * b, this.h * b);
     for (var x = 0; x < this.w; x++)
       for (var y = 0; y < this.h; y++) {
@@ -91,7 +124,7 @@ function Game() {
     this.block.draw(g, b);
     socket.emit("playFieldUpdate", this.getField());
   }
-  this.do = function () {
+  do() {
     var bottom = this.block.y + this.block.tiles.length >= this.h;
     this.block.y++;
     var collision = this.isColliding();
@@ -100,14 +133,14 @@ function Game() {
     if (bottom || collision) {
       this.embedBlock();
       this.removeLines();
-      this.block = new Block();
+      this.block = new Block(this);
     } else {
       this.block.y++;
     }
     game.draw();
 
   }
-  this.removeLines = function () {
+  removeLines() {
     var winCount = 0;
     for (var y = 0; y < this.h; y++) {
       var freeSpace = false;
@@ -123,11 +156,11 @@ function Game() {
       }
     }
     if(winCount == 1) this.increaseScore(40);
-    if(winCount == 2) this.increaseScore(100);
-    if(winCount == 3) this.increaseScore(300);
-    if(winCount == 4) this.increaseScore(1200);
+    else if(winCount == 2) this.increaseScore(100);
+    else if(winCount == 3) this.increaseScore(300);
+    else if(winCount == 4) this.increaseScore(1200);
   }
-  this.isColliding = function () {
+  isColliding() {
     var collision = false;
     for (var x = 0; x < this.block.tiles[0].length; x++)
       for (var y = 0; y < this.block.tiles.length; y++) {
@@ -138,34 +171,31 @@ function Game() {
       }
     return collision;
   }
-  this.embedBlock = function () {
+  embedBlock() {
     for (var x = 0; x < this.block.tiles[0].length; x++)
       for (var y = 0; y < this.block.tiles.length; y++) {
         if (this.block.tiles[y][x]){
-          if(0 <= y + this.block.y && y + this.block.y < this.h)
+          if(0 <= y + this.block.y && y + this.block.y < this.h){
             this.field[y + this.block.y][x + this.block.x] = this.block.color;
-            else{
-              this.running = false;
-              showGameOver((match.players.length)+".","Maybe next time :)");
-              socket.emit("leaveMatch");
-              // FINISHED
-            }
+          }else{
+            showGameOver((match.players.length)+".","Maybe next time :)");
+          }
         }
       }
   }
-  this.goRight = function () {
+  goRight() {
     this.block.x++;
     if (this.block.x + this.block.tiles[0].length > this.w || this.isColliding())
       this.block.x--;
     game.draw();
   }
-  this.goLeft = function () {
+  goLeft() {
     this.block.x--;
     if (this.block.x < 0 || this.isColliding())
       this.block.x++;
     game.draw();
   }
-  this.rotate = function () {
+  rotate() {
     this.block.tiles = rotate(this.block.tiles);
     this.goRight();
     this.goLeft();
@@ -174,17 +204,14 @@ function Game() {
     }
     game.draw();
   }
-
-  var row = [];
-  for (var i = 0; i < 10; i++) row.push(0);
-  for (var i = 0; i < 18; i++) this.field.push(JSON.parse(JSON.stringify(row)));
 }
-function Block() {
+
+function Block(game) {
 
   this.x = 4;
   this.y = -4;
-
-  this.color = getNextBlock();
+  this.game = game;
+  this.color = game.getNextBlock();
   this.tiles = blockTypes[this.color - 1];
 
   this.draw = function (g, b) {
@@ -199,9 +226,11 @@ function Block() {
   //preview next block
   var g = previewCanvas.getContext("2d");
   var size = 7;
-  var prev = blockTypes[blockSeq[0]-1];
+  var previewBlock = this.game.previewNextBlock();
+
+  var prev = blockTypes[previewBlock-1];
   g.clearRect(0,0, previewCanvas.getAttribute("width"), previewCanvas.getAttribute("height"));
-  g.fillStyle = colors[blockSeq[0]];
+  g.fillStyle = colors[previewBlock-1];
   
   for(var y = 0; y < prev.length; y++)
     for(var x = 0; x < prev[y].length; x++){
@@ -228,25 +257,20 @@ function rotate(a) {
   return b;
 }
 function eliminationTick(){
-  timercount--;
-  if(timercount < 0){
-    timercount += 60;
-  }
-  timer.innerHTML = "Next elimination: "+timercount+"s";
-  setTimeout(function(){
-    eliminationTick();
-  }, 1000);
+  game.mode.timer--;
+  if(timercount < 0)
+    game.mode.timer = game.mode.time;
+  gameinfo.innerHTML = "Next elimination: "+timercount+"s";
 }
 
 window.addEventListener("keydown", e => {
-  if(game){
+  if(game && game.running){
     if (e.which == 37) {
       game.goLeft();
     } else if (e.which == 39) {
       game.goRight();
     } else if (e.which == 40) {
-      if(game.running)
-        game.increaseScore(1);
+      game.increaseScore(1);
       game.do();
     } else if (e.which == 38) {
       game.rotate();

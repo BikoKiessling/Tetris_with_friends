@@ -78,7 +78,6 @@ table .mode, table .access{
   font-weight:bold;
 }
 #createDialog{
-  display:none;
   position:absolute;
   top:50%;
   left:50%;
@@ -106,6 +105,21 @@ table .mode, table .access{
 #players [data-ready="true"]{
   font-weight: bold;
 }
+section, #connecting, #loggedin, #createDialog{
+  display:none;
+}
+.start section#start,
+.start.connecting #connecting,
+.start.loggedin #loggedin,
+.games #games,
+.games.create #createDialog,
+.lobby #lobby,
+.ingame #ingame,
+.end #end,
+.disconencted #disconnected{
+  display:block;
+}
+
 #sectionStart, #sectionLobby{
   padding-top:10px;
   padding-bottom:10px;
@@ -165,7 +179,7 @@ img{
   right:calc(50% + 200px);
   transform: translate(0%,-50%);
 }
-#sectionIngame,#sectionEnd{
+section{
   width:100%;
   height:100%;
 }
@@ -199,25 +213,25 @@ img{
   100%{transform:rotate(30deg);margin-top:20px;}
 }
 @media(min-width:750px){
-  #sectionStart,#sectionLobby{
+  .responsive{
     padding-left:10%;
     padding-right:10%;
   }
 }
 @media(min-width:1000px){
-  #sectionStart,#sectionLobby{
+  .responsive{
     padding-left: 15%;
     padding-right:15%;
   }
 }
 @media(min-width:1200px){
-  #sectionStart,#sectionLobby{
+  .responsive{
     padding-left: 20%;
     padding-right:20%;
   }
 }
 @media(min-width:1500px){
-  #sectionStart,#sectionLobby{
+  .responsive{
     padding-left: 30%;
     padding-right:30%;
   }

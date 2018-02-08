@@ -1,32 +1,35 @@
 <html>
   <head>
     <title>Tetris with friends</title>
+    <script src="helper.js"></script>
     <script src="logistic.js"></script>
     <link rel="stylesheet" href="start.css">
     <script src="socket.io.js"></script>
     <script src="game.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
-  <body>
+  <body class="start connecting">
     <img id="pic1" src="pic1.png"></img>
     <img id="pic2" src="pic2.png"></img>
     <img id="pic3" src="pic3.png"></img>
-    <section id="sectionStart">
-      <h1>Tetris with friends</h1>
+    <section id="start">
+      <h1>Tetris <span class="sub">with friends</span></h1>
       <div id="connecting">
         connecting...
       </div>
-      <div id="loggedin" style="display:none">
+      <div id="loggedin">
         <p>
           Enter your name<br>
           <input id="nameElement" onkeydown="if(event.which == 13) register(nameElement.value);"></input>
           <button onclick="register(nameElement.value)">Ok</button>
         </p>
       </div>
-      <div id="registered" style="display:none">
+    </section>
+    <section id="games">
+      <div id="registered">
         <p>
           Here are some open games:
-          <table><tbody id="games">
+          <table><tbody id="gameList">
           </tbody></table>
         </p>
         <p>
@@ -52,19 +55,19 @@
         </p>
       </div>
     </section>
-    <section id="sectionLobby" style="display:none">
+    <section id="lobby">
       <h1>Tetris with friends</h1>
       <h2 id="matchName"></h2>
       <ul id="players">
       </ul>
-      <button onclick="leaveLobby()">Leave</button>
+      <button onclick="leaveMatch()">Leave</button>
       <button id="readyButton" onclick="onReadyStateChange()">Ready</button>
     </section>
-    <section id="sectionIngame" style="display:none">
+    <section id="ingame">
       <div id="leaderboard">
         <h3>Leaderboard</h3>
         <ol id="leaderboardElement"></ol>
-        <div id="timer"></div>
+        <div id="gameinfo"></div>
       </div>
       <canvas id="myCanvas" width="300" height="540"></canvas>
       <canvas id="previewCanvas" width="40" height="40"></canvas>
@@ -78,13 +81,16 @@
         <canvas id="worstCanvas" width="100" height="180"></canvas>
       </div>
     </section>
-    <section id="sectionEnd" style="display:none">
+    <section id="end">
       <h1 id="heading">..</h1>
       <div id="subheading">..</div>
-      <button onclick="toFront()">Go back</button>
+      <button onclick="leaveMatch()">Go back</button>
+    </section>
+    <section id="disconnected">
+      Disconnected
     </section>
   </body>
   <div id="notice">
-    developed during 24h Hackathon
+    Open Source
   </div>
 </html>
